@@ -13,8 +13,9 @@
 # rename the file to "post-receive".
 
 #. /usr/share/doc/git-core/contrib/hooks/post-receive-email
+repodir=$HOME/Git-spread
 repo=$(basename $(pwd) .git)
-file=/home/sunny/Git-spread/spool/$repo
+file=$repodir/spool/$repo
 afv $file
 cat >$file
 echo Spreading $repo commits:
