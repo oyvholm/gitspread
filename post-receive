@@ -13,3 +13,14 @@
 # rename the file to "post-receive".
 
 #. /usr/share/doc/git-core/contrib/hooks/post-receive-email
+repo=$(basename $(pwd) .git)
+file=/home/sunny/Git-spread/spool/$repo
+afv $file
+cat >$file
+echo Spreading $repo commits:
+cat $file
+echo Waiting for spreading to complete...
+while test -e $file; do
+    sleep 1
+done
+echo Spreading finished

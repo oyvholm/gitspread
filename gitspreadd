@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#=======================================================================
+# gitspreadd
+# File ID: 9277e412-5ebe-11e0-ae13-fefdb24f8e10
+# Push received commits and tags to other remotes to save bandwith
+# License: GNU General Public License version 3 or later.
+#=======================================================================
+
+progname=gitspreadd
+spool=$HOME/Git-spread/spool
+repo=$HOME/Git-spread
+
+while :; do
+    if [ -e $spool/* ]; then
+        echo $progname: Found new commits: $(cd $spool; ls)
+        cd $spool || { echo $progname: $spool: Cannot chdir >&2; exit 1; }
+        for f in *; do
+            echo $progname: Processing $f
+            cd $repo/$f.git || { echo $progname: $repo/$f.git: Cannot chdir >&2; exit 1; }
+            for r in $(git remote); do
+                git push --all $r
+                git push --tags $r
+            done
+            rm -v $spool/$f
+        done
+    fi
+
+	date +"%Y-%m-%dT%H:%M:%S Sleep..." | tr -d '\n'
+    sleep 5
+    echo OK
+done
