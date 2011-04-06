@@ -55,6 +55,7 @@ License
 -------
 
 Author: Øyvind A. Holm <sunny@sunbase.org>
+
 License: GNU General Public License version 3 or later
 
 This program is free software: you can redistribute it and/or modify it 
