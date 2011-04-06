@@ -21,15 +21,15 @@ Setup
 - Copy the `post-receive` hook script to the `hooks/` directory in the 
   repository:
   - `cp -p post-receive $HOME/Git-spread/project.git/hooks/`
-  - or manually insert the code into an existing hook script.
+  - or manually insert the code if `hooks/post-receive` already exists.
 - Define all necessary remotes using SSH push URLs, for example:
   - `git remote add gitorious git@gitorious.org:foo/project.git`
   - `git remote add github git@github.com:user/project.git`
 - Start the `gitspreadd` daemon in a shell where `ssh-agent` is 
   activated:
   - `ssh-agent bash`
-  - `ssh-add .ssh/id_dsa`
-  - `./gitspreadd`
+  - `ssh-add ~/.ssh/id_dsa`
+  - `gitspreadd &`
 - Set up a git remote on the local computer which has a slow connection:
   - `git remote add spread 
     user@example.org:/home/user/Git-spread/project.git`
