@@ -24,9 +24,19 @@ while :; do
         for f in *; do
             log $progname: Processing $f
             cd $repodir/$f.git || { log $progname: $repodir/$f.git: Cannot chdir, aborting >&2; exit 1; }
+            force="$(git config --get gitspread.forcepush)"
+            if [ "$force" != "true" -a "$force" != "false" -a ! -z "$force" ]; then
+                log WARNING: $f: gitspread.forcepush contains invalid value \"$force\". Using \"false\".
+                force=false
+            fi
+            if [ "$force" = "true" ]; then
+                force_opt=" -f"
+            else
+                force_opt=""
+            fi
             for r in $(git remote); do
-                git push --all $r >>$logfile 2>&1
-                git push --tags $r >>$logfile 2>&1
+                git push$force_opt --all $r >>$logfile 2>&1
+                git push$force_opt --tags $r >>$logfile 2>&1
             done
             rm -v $spool/$f >>$logfile 2>&1
         done

@@ -43,6 +43,16 @@ If you don’t want to use `$HOME/Git-spread` as the location for the
 repositories, change the value of `$repodir` in `gitspreadd` and 
 `post-receive`.
 
+Configuration
+-------------
+
+The following option can be used in the bare repositories:
+
+- gitspread.forcepush
+  - If "true", use `-f` (`--force`) option when pushing to the remote 
+    repositories. This allows gitspreadd to push non-fast-forward 
+    branches. Use with care. Valid values: "", "false" or "true".
+
 Source code
 -----------
 
