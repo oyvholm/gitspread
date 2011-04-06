@@ -10,23 +10,26 @@
 progname=gitspreadd
 spool=$HOME/Git-spread/spool
 repo=$HOME/Git-spread
+logfile=$repo/$progname.log
 
+log() {
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ -") $*" >>$logfile
+}
+
+log Starting $progname
 while :; do
     if [ -e $spool/* ]; then
-        echo $progname: Found new commits: $(cd $spool; ls)
-        cd $spool || { echo $progname: $spool: Cannot chdir >&2; exit 1; }
+        log $progname: Found new commits: $(cd $spool; ls)
+        cd $spool || { log $progname: $spool: Cannot chdir, aborting; exit 1; }
         for f in *; do
-            echo $progname: Processing $f
-            cd $repo/$f.git || { echo $progname: $repo/$f.git: Cannot chdir >&2; exit 1; }
+            log $progname: Processing $f
+            cd $repo/$f.git || { log $progname: $repo/$f.git: Cannot chdir, aborting >&2; exit 1; }
             for r in $(git remote); do
-                git push --all $r
-                git push --tags $r
+                git push --all $r >>$logfile 2>&1
+                git push --tags $r >>$logfile 2>&1
             done
-            rm -v $spool/$f
+            rm -v $spool/$f >>$logfile 2>&1
         done
     fi
-
-	date +"%Y-%m-%dT%H:%M:%S Sleep..." | tr -d '\n'
     sleep 5
-    echo OK
 done
