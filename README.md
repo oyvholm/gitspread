@@ -23,6 +23,7 @@ Setup
   - `cp -p post-receive $HOME/Git-spread/project.git/hooks/`
   - or manually insert the code if `hooks/post-receive` already exists.
 - Define all necessary remotes using SSH push URLs, for example:
+  - `cd ~/Git-spread/project.git`
   - `git remote add gitorious git@gitorious.org:foo/project.git`
   - `git remote add github git@github.com:user/project.git`
 - Start the `gitspreadd` daemon in a shell where `ssh-agent` is 
