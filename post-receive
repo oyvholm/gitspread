@@ -16,7 +16,6 @@
 repodir=$HOME/Git-spread
 repo=$(basename $(pwd) .git)
 file=$repodir/spool/$repo
-afv $file
 cat >$file
 echo Spreading $repo commits:
 cat $file
