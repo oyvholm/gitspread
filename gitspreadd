@@ -23,6 +23,7 @@ our %Opt = (
 
     'debug' => 0,
     'help' => 0,
+    'run-once' => 0,
     'verbose' => 0,
     'version' => 0,
 
@@ -37,6 +38,7 @@ GetOptions(
 
     'debug' => \$Opt{'debug'},
     'help|h' => \$Opt{'help'},
+    'run-once|1' => \$Opt{'run-once'},
     'verbose|v+' => \$Opt{'verbose'},
     'version' => \$Opt{'version'},
 
@@ -49,9 +51,11 @@ if ($Opt{'version'}) {
     exit(0);
 }
 
-while (<>) {
-    print;
-}
+my $do_loop = $Opt{'run-once'} ? 0 : 1;
+
+do {
+    sleep(1);
+} while($do_loop);
 
 sub print_version {
     # Print program version {{{
@@ -76,6 +80,9 @@ Options:
 
   -h, --help
     Show this help.
+  -1, --run-once
+    Just pass through the program once instead of looping. Used for 
+    testing purposes.
   -v, --verbose
     Increase level of verbosity. Can be repeated.
   --version
