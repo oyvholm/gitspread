@@ -62,6 +62,9 @@ if ($Opt{'version'}) {
 }
 
 my $repodir = $Std{'repodir'};
+defined($ENV{'GITSPREAD_REPODIR'}) &&
+    length($ENV{'GITSPREAD_REPODIR'}) &&
+    ($repodir = $ENV{'GITSPREAD_REPODIR'});
 length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
 
 my $spooldir = "$repodir/spool";

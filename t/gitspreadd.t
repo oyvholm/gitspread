@@ -155,6 +155,18 @@ like(file_data($logfile), # {{{
 
 # }}}
 cleanup();
+create_tmpdir();
+testcmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
+    '',
+    '',
+    0,
+    'Use GITSPREAD_REPODIR environment variable',
+);
+
+# }}}
+ok(-d $spooldir, "$spooldir exists");
+ok(-e $logfile, "$logfile exists");
+cleanup();
 
 todo_section:
 ;

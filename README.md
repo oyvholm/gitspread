@@ -39,9 +39,18 @@ That’s all there is. From now on, you can push to the "spread" remote
 and let the remote server with a faster connection take care of 
 spreading the commits around.
 
+Directory location
+------------------
+
 If you don’t want to use `$HOME/Git-spread` as the location for the 
-repositories, change the value of `$repodir` in `gitspreadd` and 
-`post-receive`.
+repositories, either set the `$GITSPREAD_REPODIR` environment varieble 
+to the preferred directory, or change the value of `$repodir` in 
+`post-receive` and run `gitspreadd` with the `-r`/`--repodir` option. 
+The gitspreadd daemon chooses the directory this way:
+
+Use the location specified by the `-r`/`--repodir` command line option, 
+otherwise use `$GITSPREAD_REPODIR` if defined, otherwise use hardcoded 
+value `$HOME/Git-spread`.
 
 Configuration
 -------------

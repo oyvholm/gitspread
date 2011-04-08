@@ -14,6 +14,7 @@
 
 #. /usr/share/doc/git-core/contrib/hooks/post-receive-email
 repodir=$HOME/Git-spread
+test -z "$GITSPREAD_REPODIR" || repodir="$GITSPREAD_REPODIR"
 repo=$(basename $(pwd) .git)
 file=$repodir/spool/$repo
 cat >$file
