@@ -65,6 +65,12 @@ diag(sprintf('========== Executing %s v%s ==========',
     $progname,
     $VERSION));
 
+unless (ok(-e 'gitspreadd.t' && -e '../gitspreadd' && -e '../post-receive',
+    'We are in the correct directory')) {
+    diag('Has to be run from inside the gitspread/t/ directory.');
+    exit 1;
+}
+
 if ($Opt{'todo'} && !$Opt{'all'}) {
     goto todo_section;
 }
