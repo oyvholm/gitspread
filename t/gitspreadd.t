@@ -17,9 +17,10 @@ use warnings;
 BEGIN {
     # push(@INC, "$ENV{'HOME'}/bin/STDlibdirDTS");
     use Test::More qw{no_plan};
-    # use_ok() goes here
+    use_ok('Cwd');
 }
 
+use Cwd;
 use Getopt::Long;
 
 local $| = 1;
@@ -118,6 +119,16 @@ likecmd("$CMD --version", # {{{
 
 # }}}
 
+my $orig_dir = cwd();
+my $tmpdir = "$orig_dir/tmpdir";
+testcmd("$CMD -1 -r $tmpdir", # {{{
+    '',
+    '',
+    0,
+    'Run with -r option',
+);
+
+# }}}
 todo_section:
 ;
 

@@ -19,10 +19,17 @@ local $| = 1;
 
 our $Debug = 0;
 
+my %Std = (
+
+    'repodir' => "$ENV{'HOME'}/Git-spread",
+
+);
+
 our %Opt = (
 
     'debug' => 0,
     'help' => 0,
+    'repodir' => '',
     'run-once' => 0,
     'verbose' => 0,
     'version' => 0,
@@ -38,6 +45,7 @@ GetOptions(
 
     'debug' => \$Opt{'debug'},
     'help|h' => \$Opt{'help'},
+    'repodir|r=s' => \$Opt{'repodir'},
     'run-once|1' => \$Opt{'run-once'},
     'verbose|v+' => \$Opt{'verbose'},
     'version' => \$Opt{'version'},
@@ -51,6 +59,8 @@ if ($Opt{'version'}) {
     exit(0);
 }
 
+my $repodir = $Std{'repodir'};
+length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
 my $do_loop = $Opt{'run-once'} ? 0 : 1;
 
 do {
@@ -80,6 +90,9 @@ Options:
 
   -h, --help
     Show this help.
+  -r X, --repodir X
+    Use X as directory to store bare repos.
+    Default: "$Std{'repodir'}"
   -1, --run-once
     Just pass through the program once instead of looping. Used for 
     testing purposes.
