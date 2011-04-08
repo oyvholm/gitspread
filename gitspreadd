@@ -61,6 +61,12 @@ if ($Opt{'version'}) {
 
 my $repodir = $Std{'repodir'};
 length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
+
+if (! -d "$repodir/.") {
+    warn("$progname: $repodir: Missing repository top directory\n");
+    exit(1);
+}
+
 my $do_loop = $Opt{'run-once'} ? 0 : 1;
 
 do {

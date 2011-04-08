@@ -121,6 +121,16 @@ likecmd("$CMD --version", # {{{
 
 my $orig_dir = cwd();
 my $tmpdir = "$orig_dir/tmpdir";
+cleanup();
+testcmd("$CMD -1 -r $tmpdir", # {{{
+    '',
+    "gitspreadd: $tmpdir: Missing repository top directory\n",
+    1,
+    'Complain about missing repodir',
+);
+
+# }}}
+create_tmpdir();
 testcmd("$CMD -1 -r $tmpdir", # {{{
     '',
     '',
@@ -129,6 +139,8 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 );
 
 # }}}
+cleanup();
+
 todo_section:
 ;
 
@@ -145,6 +157,23 @@ local $TODO = '';
 }
 
 diag('Testing finished.');
+
+sub cleanup {
+    # {{{
+    ok(chdir($orig_dir), "chdir $orig_dir");
+    testcmd("rm -rf $tmpdir", '', '', 0, 'Delete tmpdir');
+    ok(!-e $tmpdir, "$tmpdir does not exist");
+    return;
+    # }}}
+} # cleanup()
+
+sub create_tmpdir {
+    # {{{
+    ok(mkdir($tmpdir), "mkdir $tmpdir");
+    ok(-d $tmpdir, 'tmpdir exists');
+    return;
+    # }}}
+} # create_tmpdir()
 
 sub testcmd {
     # {{{
