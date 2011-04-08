@@ -121,6 +121,7 @@ likecmd("$CMD --version", # {{{
 
 my $orig_dir = cwd();
 my $tmpdir = "$orig_dir/tmpdir";
+my $spooldir = "$tmpdir/spool";
 cleanup();
 testcmd("$CMD -1 -r $tmpdir", # {{{
     '',
@@ -139,6 +140,7 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 );
 
 # }}}
+ok(-d $spooldir, "$spooldir exists");
 cleanup();
 
 todo_section:

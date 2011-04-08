@@ -62,9 +62,15 @@ if ($Opt{'version'}) {
 my $repodir = $Std{'repodir'};
 length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
 
+my $spooldir = "$repodir/spool";
+
 if (! -d "$repodir/.") {
     warn("$progname: $repodir: Missing repository top directory\n");
     exit(1);
+}
+
+if (! -d "$spooldir/.") {
+    mkdir($spooldir) or die("$progname: $spooldir: Cannot create spool directory: $!\n");
 }
 
 my $do_loop = $Opt{'run-once'} ? 0 : 1;
