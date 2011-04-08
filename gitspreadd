@@ -3,7 +3,7 @@
 #=======================================================================
 # gitspreadd
 # File ID: 6c4d0b82-6111-11e0-8250-e509f64f5c24
-# [Description]
+# Push received commits and tags to other remotes to save bandwith
 #
 # Character set: UTF-8
 # ©opyleft 2011– Øyvind A. Holm <sunny@sunbase.org>

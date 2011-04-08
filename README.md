@@ -81,3 +81,5 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along 
 with this program. If not, see <http://www.gnu.org/licenses/>.
+
+    vim: set ft=markdown tw=72 fenc=utf8 et ts=2 sw=2 sts=2 fo=tcqw :
