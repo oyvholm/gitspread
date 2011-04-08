@@ -18,6 +18,8 @@ BEGIN {
     # push(@INC, "$ENV{'HOME'}/bin/STDlibdirDTS");
     use Test::More qw{no_plan};
     use_ok('Cwd');
+    use_ok('Fcntl');
+    use_ok('IO::Handle');
 }
 
 use Cwd;
@@ -119,9 +121,13 @@ likecmd("$CMD --version", # {{{
 
 # }}}
 
+my $datefmt = '20\d\d-\d\d-\d\d \d\d:\d\d:\d\dZ';
+
 my $orig_dir = cwd();
 my $tmpdir = "$orig_dir/tmpdir";
 my $spooldir = "$tmpdir/spool";
+my $logfile = "$tmpdir/gitspreadd.log";
+
 cleanup();
 testcmd("$CMD -1 -r $tmpdir", # {{{
     '',
@@ -141,6 +147,13 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 
 # }}}
 ok(-d $spooldir, "$spooldir exists");
+ok(-e $logfile, "$logfile exists");
+like(file_data($logfile), # {{{
+    "/^$datefmt - Starting gitspreadd v\\d.\\d\\d\\n\$/s",
+    "$logfile looks ok"
+);
+
+# }}}
 cleanup();
 
 todo_section:

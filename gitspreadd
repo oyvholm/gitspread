@@ -14,6 +14,8 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Fcntl ':flock';
+use IO::Handle;
 
 local $| = 1;
 
@@ -63,6 +65,7 @@ my $repodir = $Std{'repodir'};
 length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
 
 my $spooldir = "$repodir/spool";
+my $logfile = "$repodir/$progname.log";
 
 if (! -d "$repodir/.") {
     warn("$progname: $repodir: Missing repository top directory\n");
@@ -73,11 +76,31 @@ if (! -d "$spooldir/.") {
     mkdir($spooldir) or die("$progname: $spooldir: Cannot create spool directory: $!\n");
 }
 
+open(my $logfh, '>>', $logfile)
+    or die("$progname: $logfile: Cannot open logfile: $!\n");
+$logfh->autoflush(1);
+flock($logfh, LOCK_EX | LOCK_NB)
+    or die("$progname: $logfile: Cannot lock file: $!.\n" .
+        "Is $progname already running?\n");
+logmsg("Starting $progname v$VERSION");
+
 my $do_loop = $Opt{'run-once'} ? 0 : 1;
 
 do {
     sleep(1);
 } while($do_loop);
+
+sub logmsg {
+    # {{{
+    my @txt = @_;
+    my ($sec, $min, $hour, $day, $mon, $year, $wday, $yday, $is_dst) =
+        gmtime(time);
+    my $timestamp = sprintf('%04u-%02u-%02u %02u:%02u:%02uZ',
+        $year+1900, $mon+1, $day, $hour, $min, $sec);
+    print($logfh "$timestamp - ", @txt, "\n");
+    return;
+    # }}}
+} # logmsg()
 
 sub print_version {
     # Print program version {{{
