@@ -1,5 +1,5 @@
-README for gitspread
-====================
+README for gitspread v0.01
+==========================
 
 A project is often stored on several hosting services like 
 [Gitorious](http://gitorious.org/), [GitHub](http://github.com/), 
