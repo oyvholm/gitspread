@@ -20,6 +20,7 @@ BEGIN {
     use_ok('Cwd');
     use_ok('Fcntl');
     use_ok('IO::Handle');
+    use_ok('POSIX');
 }
 
 use Cwd;
@@ -127,6 +128,8 @@ my $orig_dir = cwd();
 my $tmpdir = "$orig_dir/tmpdir";
 my $spooldir = "$tmpdir/spool";
 my $logfile = "$tmpdir/gitspreadd.log";
+my $pidfile = "$tmpdir/pid";
+my $stopfile = "$tmpdir/stop";
 
 cleanup();
 testcmd("$CMD -1 -r $tmpdir", # {{{
@@ -138,9 +141,9 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 
 # }}}
 create_tmpdir();
-testcmd("$CMD -1 -r $tmpdir", # {{{
-    '',
-    '',
+likecmd("$CMD -1 -r $tmpdir", # {{{
+    '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
+    '/^$/',
     0,
     'Run with -r option',
 );
@@ -149,16 +152,16 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 ok(-d $spooldir, "$spooldir exists");
 ok(-e $logfile, "$logfile exists");
 like(file_data($logfile), # {{{
-    "/^$datefmt - Starting gitspreadd v\\d.\\d\\d\\n\$/s",
+    "/^$datefmt - Starting gitspreadd v\\d.\\d\\d, PID = \\d+\\n\$/s",
     "$logfile looks ok"
 );
 
 # }}}
 cleanup();
 create_tmpdir();
-testcmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
-    '',
-    '',
+likecmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
+    '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
+    '/^$/',
     0,
     'Use GITSPREAD_REPODIR environment variable',
 );
@@ -166,6 +169,8 @@ testcmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
 # }}}
 ok(-d $spooldir, "$spooldir exists");
 ok(-e $logfile, "$logfile exists");
+start_daemon();
+stop_daemon();
 cleanup();
 
 todo_section:
@@ -201,6 +206,28 @@ sub create_tmpdir {
     return;
     # }}}
 } # create_tmpdir()
+
+sub start_daemon {
+    # {{{
+    diag('Starting daemon...');
+    system("$orig_dir/$CMD -r $tmpdir");
+    ok(-e $pidfile, 'PID file exists');
+    like(file_data($pidfile), '/^\d+\n$/s', 'PID file looks ok');
+    return;
+    # }}}
+} # start_daemon()
+
+sub stop_daemon {
+    # {{{
+    diag('Stopping daemon...');
+    ok(open(my $stopfh, '>', $stopfile), "Create stop file $stopfile");
+    ok(close($stopfh), 'Close stop file');
+    diag('Waiting for process to stop...');
+    while(-e $stopfile) { }
+    ok(!-e $pidfile, 'PID file is removed');
+    return;
+    # }}}
+} # stop_daemon()
 
 sub testcmd {
     # {{{

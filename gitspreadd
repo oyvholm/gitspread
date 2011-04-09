@@ -16,6 +16,7 @@ use warnings;
 use Getopt::Long;
 use Fcntl ':flock';
 use IO::Handle;
+use POSIX 'setsid';
 
 local $| = 1;
 
@@ -69,6 +70,8 @@ length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
 
 my $spooldir = "$repodir/spool";
 my $logfile = "$repodir/$progname.log";
+my $pidfile = "$repodir/pid";
+my $stopfile = "$repodir/stop";
 
 if (! -d "$repodir/.") {
     warn("$progname: $repodir: Missing repository top directory\n");
@@ -85,13 +88,35 @@ $logfh->autoflush(1);
 flock($logfh, LOCK_EX | LOCK_NB)
     or die("$progname: $logfile: Cannot lock file: $!.\n" .
         "Is $progname already running?\n");
-logmsg("Starting $progname v$VERSION");
 
 my $do_loop = $Opt{'run-once'} ? 0 : 1;
 
+defined(my $pid = fork) or die("$progname: Cannot fork: $!");
+
+if ($pid) {
+    my $start_str = "Starting $progname v$VERSION, PID = $pid";
+    print("$start_str\n");
+    logmsg($start_str);
+    if (open(my $pidfh, '>', $pidfile)) {
+        print($pidfh "$pid\n");
+        close($pidfh);
+    }
+}
+
+exit if $pid;
+setsid or die("$progname: Cannot start a new session: $!\n");
+
 do {
+    if (-e "$repodir/stop") {
+        logmsg("$repodir/stop exists, terminating properly");
+        unlink("$repodir/stop") || logmsg("WARNING: Cannot remove $repodir/stop: $!");
+        unlink("$repodir/pid") || logmsg("WARNING: Cannot remove $repodir/pid: $!");
+        exit(0);
+    }
     sleep(1);
 } while($do_loop);
+
+exit;
 
 sub logmsg {
     # {{{

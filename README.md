@@ -30,7 +30,7 @@ Setup
   activated:
   - `ssh-agent bash`
   - `ssh-add ~/.ssh/id_dsa`
-  - `gitspreadd &`
+  - `gitspreadd`
 - Set up a git remote on the local computer which has a slow connection:
   - `git remote add spread 
     user@example.org:/home/user/Git-spread/project.git`
@@ -38,6 +38,11 @@ Setup
 That’s all there is. From now on, you can push to the "spread" remote 
 and let the remote server with a faster connection take care of 
 spreading the commits around.
+
+To stop the daemon, create a file named `stop` in the top directory. 
+When the file is gone, the process is terminated. The PID of the current 
+process is stored in a file named `pid`. This file is also deleted when 
+the process terminates properly.
 
 Directory location
 ------------------
