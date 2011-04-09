@@ -136,9 +136,16 @@ sub process_repo {
         goto endfunc;
     }
 
+    my $force = git_config_value('gitspread.forcepush');
+    if ($force !~ /^(|false|true)$/) {
+        logmsg("WARNING: $repo: gitspread.forcepush contains invalid value \"$force\". " .
+            'Using "false".');
+        $force = 'false';
+    }
+    my $force_opt = $force eq 'true' ? ' -f' : '';
     for my $remote (git_remotes()) {
-        system("git push --all $remote >>$logfile 2>&1\n");
-        system("git push --tags $remote >>$logfile 2>&1\n");
+        system("git push$force_opt --all $remote >>$logfile 2>&1\n");
+        system("git push$force_opt --tags $remote >>$logfile 2>&1\n");
     }
 
 endfunc:
@@ -146,6 +153,25 @@ endfunc:
     return;
     # }}}
 } # process_repo()
+
+sub git_config_value {
+    # {{{
+    my $option = shift;
+    my $retval = '';
+    if (open(my $pipefh, "git config --get $option |")) {
+        local $/ = undef;
+        $retval = <$pipefh>;
+        close($pipefh) or
+            logmsg("WARNING: could not close \$pipefh in git_config_value(): $!");
+    } else {
+        logmsg("FATAL: git_config_value(): " .
+            "Cannot open \"git config --get\" pipe: $!. Aborting.");
+        exit(1);
+    }
+    chomp($retval);
+    return($retval);
+    # }}}
+} # git_config_value()
 
 sub git_remotes {
     # {{{

@@ -190,6 +190,19 @@ add_and_commit_newfile();
 push_to_repo_succeeds();
 check_log($SHOULD_EXIST, 'Commit exists in mirror.git');
 
+diag('Check gitspread.forcepush config option...');
+reset_wrkdir_to_first_commit();
+push_to_repo_denied();
+push_to_repo_force_update();
+check_log($SHOULD_EXIST, 'Commit still exists in mirror.git');
+
+enable_gitspread_forcepush();
+add_and_commit_newfile();
+push_to_repo_succeeds();
+reset_wrkdir_to_first_commit();
+push_to_repo_force_update();
+check_log($SHOULD_NOT_EXIST, 'Commit is gone from mirror.git');
+
 stop_daemon();
 cleanup();
 
@@ -310,6 +323,20 @@ sub check_log {
     # }}}
 } # check_log()
 
+sub enable_gitspread_forcepush {
+    # {{{
+    diag('Enable gitspread.forcepush in repo.git...');
+    ok(chdir($repo), 'chdir repo.git');
+    likecmd('git config gitspread.forcepush true',
+        '/^$/',
+        '/^$/',
+        0,
+        'Enable gitspread.forcepush'
+    );
+    return;
+    # }}}
+} # enable_gitspread_forcepush()
+
 sub push_to_repo_succeeds {
     # {{{
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
@@ -326,6 +353,51 @@ sub push_to_repo_succeeds {
     return;
     # }}}
 } # push_to_repo_succeeds()
+
+sub push_to_repo_denied {
+    # {{{
+    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
+        '/^$/',
+        '/^.*' .
+        'error: failed to push some refs to .*' .
+        'To prevent you from losing history, non-fast-forward updates were rejected.*$/s',
+        1,
+        'Denied non-fast-forward push'
+    );
+    return;
+    # }}}
+} # push_to_repo_denied()
+
+sub push_to_repo_force_update {
+    # {{{
+    likecmd("GITSPREAD_REPODIR=$tmpdir git push -f dest",
+        '/^$/',
+        '/^.*' .
+            'remote: Spreading repo commits:.*' .
+            'remote: [0-9a-f]{40} ' .
+            'a1989e25c8e7c23a3c455731f9433ed0932ec193 refs/heads/master.*' .
+            'remote: Waiting for spreading to complete\.\.\..*' .
+            'remote: Spreading finished.*' .
+            '\.\.\.a1989e2 master -> master \(forced update\).*$/s',
+        0,
+        'Force-push to dest remote'
+    );
+    return;
+    # }}}
+} # push_to_repo_force_update()
+
+sub reset_wrkdir_to_first_commit {
+    # {{{
+    ok(chdir($wrkdir), 'chdir wrkdir');
+    likecmd('git reset --hard a1989e2',
+        '/^HEAD is now at a1989e2 Initial empty commit\n$/',
+        '/^$/',
+        0,
+        'Reset HEAD to first commit'
+    );
+    return;
+    # }}}
+} # reset_wrkdir_to_first_commit()
 
 sub start_daemon {
     # {{{
