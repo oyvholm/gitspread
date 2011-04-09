@@ -7,6 +7,8 @@
 # License: GNU General Public License version 3 or later.
 #=======================================================================
 
+# This file is obsolete, and is superseded by the Perl version.
+
 progname=gitspreadd
 repodir=$HOME/Git-spread
 spool=$repodir/spool
