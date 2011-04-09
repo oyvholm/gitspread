@@ -24,6 +24,7 @@ BEGIN {
 }
 
 use Cwd;
+use File::Copy;
 use Getopt::Long;
 
 local $| = 1;
@@ -124,8 +125,15 @@ likecmd("$CMD --version", # {{{
 
 my $datefmt = '20\d\d-\d\d-\d\d \d\d:\d\d:\d\dZ';
 
+my $SHOULD_NOT_EXIST = 0;
+my $SHOULD_EXIST = 1;
+
 my $orig_dir = cwd();
 my $tmpdir = "$orig_dir/tmpdir";
+my $repo = "$tmpdir/repo.git";
+my $mirror = "$tmpdir/mirror.git";
+my $hook = "$repo/hooks/post-receive";
+my $wrkdir = "$tmpdir/wrkdir";
 my $spooldir = "$tmpdir/spool";
 my $logfile = "$tmpdir/gitspreadd.log";
 my $pidfile = "$tmpdir/pid";
@@ -169,7 +177,19 @@ likecmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
 # }}}
 ok(-d $spooldir, "$spooldir exists");
 ok(-e $logfile, "$logfile exists");
+
+diag('Set up repositories...');
+
+setup_repo();
+setup_wrkdir();
+setup_mirror();
+
 start_daemon();
+
+add_and_commit_newfile();
+push_to_repo_succeeds();
+check_log($SHOULD_EXIST, 'Commit exists in mirror.git');
+
 stop_daemon();
 cleanup();
 
@@ -206,6 +226,106 @@ sub create_tmpdir {
     return;
     # }}}
 } # create_tmpdir()
+
+sub clone_bundle {
+    # {{{
+    my ($dir, $bare) = @_;
+
+    my $bare_str = $bare ? " --bare" : "";
+    my $bare_msg = $bare ? " bare repository" : "";
+    testcmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
+        "Cloning into$bare_msg $tmpdir/$dir...\n",
+        '',
+        0,
+        "Clone repo.bundle into $dir"
+    );
+    return;
+    # }}}
+} # clone_bundle()
+
+sub setup_repo {
+    # {{{
+    diag('Create repo.git...');
+    testcmd("rm -rf $repo", '', '', 0, 'Make sure repo.git does not exist');
+    clone_bundle('repo.git', 1);
+    my $bck_dir = cwd();
+    ok(chdir($repo), 'chdir repo.git');
+    testcmd("git remote add mirror $mirror", '', '', 0, 'Set up mirror remote');
+    testcmd("git remote rm origin", '', '', 0, 'Delete origin remote');
+    ok(copy("$orig_dir/../post-receive", $hook), "Copy ../post-receive to $hook");
+    ok(-e $hook, 'Yes, it was really copied');
+    ok(chmod(0755, $hook), "Make $hook executable");
+    is((stat($hook))[2] & 07777, 0755, "$hook has correct permissions");
+    ok(chdir($bck_dir), 'Return to previous directory');
+    return;
+    # }}}
+} # setup_repo()
+
+sub setup_wrkdir {
+    # {{{
+    testcmd("rm -rf $wrkdir", '', '', 0, 'Make sure wrkdir does not exist');
+    clone_bundle('wrkdir', 0);
+    ok(chdir($wrkdir), 'chdir wrkdir');
+    testcmd("git remote add dest $repo", '', '', 0, 'Set up dest remote');
+    return;
+    # }}}
+} # setup_wrkdir()
+
+sub setup_mirror {
+    # {{{
+    testcmd("rm -rf $mirror", '', '', 0, 'Make sure mirror.git does not exist');
+    clone_bundle('mirror.git', 1);
+    check_log($SHOULD_NOT_EXIST, 'The magical commit does not exist in mirror.git yet');
+    # }}}
+} # setup_mirror()
+
+sub add_and_commit_newfile {
+    # {{{
+    diag('Make a commit...');
+    ok(chdir($wrkdir), "chdir $wrkdir");
+    ok(open(my $newfile, '>', 'newfile'), 'Create newfile');
+    ok(print($newfile "This file is new.\n"), 'Write to newfile');
+    ok(close($newfile), 'Close newfile');
+    testcmd('git add newfile', '', '', 0, 'Add newfile for commit');
+    likecmd('git commit -m "Adding a great newfile"',
+        '/^\[master [0-9a-f].*?\] Adding a great newfile\n.*$/s',
+        '/^$/',
+        0,
+        'Commit addition of newfile'
+    );
+    return;
+    # }}}
+} # add_and_commit_newfile()
+
+sub check_log {
+    # {{{
+    my ($should_exist, $msg) = @_;
+    ok(chdir($mirror), 'chdir mirror.git');
+    if ($should_exist == $SHOULD_EXIST) {
+        like(`git log`, '/^.*Adding a great newfile.*$/s', $msg);
+    } else {
+        unlike(`git log`, '/^.*Adding a great newfile.*$/s', $msg);
+    }
+    return;
+    # }}}
+} # check_log()
+
+sub push_to_repo_succeeds {
+    # {{{
+    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
+        '/^$/',
+        '/^.*' .
+            'remote: Spreading repo commits:.*' .
+            'remote: a1989e25c8e7c23a3c455731f9433ed0932ec193 ' .
+            '[0-9a-f]{40} refs/heads/master.*' .
+            'remote: Waiting for spreading to complete\.\.\..*' .
+            'remote: Spreading finished.*$/s',
+        0,
+        'Push to dest remote'
+    );
+    return;
+    # }}}
+} # push_to_repo_succeeds()
 
 sub start_daemon {
     # {{{

@@ -113,10 +113,58 @@ do {
         unlink("$repodir/pid") || logmsg("WARNING: Cannot remove $repodir/pid: $!");
         exit(0);
     }
+    chdir($spooldir) || (logmsg("$spooldir: Cannot chdir to spool directory: $!. Aborting."), exit(1));
+    my @repos = glob('*');
+    if (scalar @repos) {
+        logmsg('Found new commits: ' . join(' ', @repos));
+        for my $repo (@repos) {
+            process_repo($repo);
+        }
+    }
     sleep(1);
 } while($do_loop);
 
 exit;
+
+sub process_repo {
+    # {{{
+    my $repo = shift;
+    logmsg("Processing $repo");
+    my $repogit = "$repodir/$repo.git";
+    unless (chdir($repogit)) {
+        logmsg("$repogit: Cannot chdir: $!. Ignoring repository.");
+        goto endfunc;
+    }
+
+    for my $remote (git_remotes()) {
+        system("git push --all $remote >>$logfile 2>&1\n");
+        system("git push --tags $remote >>$logfile 2>&1\n");
+    }
+
+endfunc:
+    unlink("$spooldir/$repo") || logmsg("WARNING: $spooldir/$repo: Cannot delete file: $!");
+    return;
+    # }}}
+} # process_repo()
+
+sub git_remotes {
+    # {{{
+    my @retval = ();
+    if (open(my $pipefh, "git remote |")) {
+        while (<$pipefh>) {
+            chomp;
+            length($_) && push(@retval, $_);
+        }
+        close($pipefh) or
+            logmsg("WARNING: Could not close \$pipefh in git_remotes(): $!");
+    } else {
+        logmsg("FATAL: git_remotes(): " .
+            "Cannot open \"git remote\" pipe: $!. Aborting.");
+        exit(1);
+    }
+    return(@retval);
+    # }}}
+} # git_remotes()
 
 sub logmsg {
     # {{{
