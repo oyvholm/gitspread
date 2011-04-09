@@ -14,6 +14,8 @@
 use strict;
 use warnings;
 use Getopt::Long;
+
+use Cwd qw{ abs_path };
 use Fcntl ':flock';
 use IO::Handle;
 use POSIX 'setsid';
@@ -62,16 +64,16 @@ if ($Opt{'version'}) {
     exit(0);
 }
 
-my $repodir = $Std{'repodir'};
+my $repodir = abs_path($Std{'repodir'});
 defined($ENV{'GITSPREAD_REPODIR'}) &&
     length($ENV{'GITSPREAD_REPODIR'}) &&
-    ($repodir = $ENV{'GITSPREAD_REPODIR'});
-length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
+    ($repodir = abs_path($ENV{'GITSPREAD_REPODIR'}));
+length($Opt{'repodir'}) && ($repodir = abs_path($Opt{'repodir'}));
 
-my $spooldir = "$repodir/spool";
-my $logfile = "$repodir/$progname.log";
-my $pidfile = "$repodir/pid";
-my $stopfile = "$repodir/stop";
+my $spooldir = abs_path("$repodir/spool");
+my $logfile = abs_path("$repodir/$progname.log");
+my $pidfile = abs_path("$repodir/pid");
+my $stopfile = abs_path("$repodir/stop");
 
 if (! -d "$repodir/.") {
     warn("$progname: $repodir: Missing repository top directory\n");
