@@ -109,8 +109,8 @@ setsid or die("$progname: Cannot start a new session: $!\n");
 do {
     if (-e "$repodir/stop") {
         logmsg("$repodir/stop exists, terminating properly");
-        unlink("$repodir/stop") || logmsg("WARNING: Cannot remove $repodir/stop: $!");
         unlink("$repodir/pid") || logmsg("WARNING: Cannot remove $repodir/pid: $!");
+        unlink("$repodir/stop") || logmsg("WARNING: Cannot remove $repodir/stop: $!");
         exit(0);
     }
     chdir($spooldir) || (logmsg("$spooldir: Cannot chdir to spool directory: $!. Aborting."), exit(1));
