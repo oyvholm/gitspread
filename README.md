@@ -48,7 +48,7 @@ Directory location
 ------------------
 
 If you don’t want to use `$HOME/Git-spread` as the location for the 
-repositories, either set the `$GITSPREAD_REPODIR` environment varieble 
+repositories, either set the `$GITSPREAD_REPODIR` environment variable 
 to the preferred directory, or change the value of `$repodir` in 
 `post-receive` and run `gitspreadd` with the `-r`/`--repodir` option. 
 The gitspreadd daemon chooses the directory this way:
