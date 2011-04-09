@@ -1,45 +1,347 @@
-#!/bin/bash
+#!/usr/bin/perl
 
 #=======================================================================
 # gitspreadd
-# File ID: 9277e412-5ebe-11e0-ae13-fefdb24f8e10
+# File ID: 6c4d0b82-6111-11e0-8250-e509f64f5c24
 # Push received commits and tags to other remotes to save bandwith
-# License: GNU General Public License version 3 or later.
+#
+# Character set: UTF-8
+# ©opyleft 2011– Øyvind A. Holm <sunny@sunbase.org>
+# License: GNU General Public License version 3 or later, see end of 
+# file for legal stuff.
 #=======================================================================
 
-progname=gitspreadd
-repodir=$HOME/Git-spread
-spool=$repodir/spool
-logfile=$repodir/$progname.log
+use strict;
+use warnings;
+use Getopt::Long;
+use Fcntl ':flock';
+use IO::Handle;
+use POSIX 'setsid';
 
-log() {
-    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ -") $*" >>$logfile
+local $| = 1;
+
+our $Debug = 0;
+
+my %Std = (
+
+    'repodir' => "$ENV{'HOME'}/Git-spread",
+
+);
+
+our %Opt = (
+
+    'debug' => 0,
+    'help' => 0,
+    'repodir' => '',
+    'run-once' => 0,
+    'verbose' => 0,
+    'version' => 0,
+
+);
+
+our $progname = $0;
+$progname =~ s/^.*\/(.*?)$/$1/;
+our $VERSION = '0.00';
+
+Getopt::Long::Configure('bundling');
+GetOptions(
+
+    'debug' => \$Opt{'debug'},
+    'help|h' => \$Opt{'help'},
+    'repodir|r=s' => \$Opt{'repodir'},
+    'run-once|1' => \$Opt{'run-once'},
+    'verbose|v+' => \$Opt{'verbose'},
+    'version' => \$Opt{'version'},
+
+) || die("$progname: Option error. Use -h for help.\n");
+
+$Opt{'debug'} && ($Debug = 1);
+$Opt{'help'} && usage(0);
+if ($Opt{'version'}) {
+    print_version();
+    exit(0);
 }
 
-log Starting $progname
-while :; do
-    if [ -e $spool/* ]; then
-        log $progname: Found new commits: $(cd $spool; ls)
-        cd $spool || { log $progname: $spool: Cannot chdir, aborting; exit 1; }
-        for f in *; do
-            log $progname: Processing $f
-            cd $repodir/$f.git || { log $progname: $repodir/$f.git: Cannot chdir, aborting >&2; exit 1; }
-            force="$(git config --get gitspread.forcepush)"
-            if [ "$force" != "true" -a "$force" != "false" -a ! -z "$force" ]; then
-                log WARNING: $f: gitspread.forcepush contains invalid value \"$force\". Using \"false\".
-                force=false
-            fi
-            if [ "$force" = "true" ]; then
-                force_opt=" -f"
-            else
-                force_opt=""
-            fi
-            for r in $(git remote); do
-                git push$force_opt --all $r >>$logfile 2>&1
-                git push$force_opt --tags $r >>$logfile 2>&1
-            done
-            rm -v $spool/$f >>$logfile 2>&1
-        done
-    fi
-    sleep 5
-done
+my $repodir = $Std{'repodir'};
+defined($ENV{'GITSPREAD_REPODIR'}) &&
+    length($ENV{'GITSPREAD_REPODIR'}) &&
+    ($repodir = $ENV{'GITSPREAD_REPODIR'});
+length($Opt{'repodir'}) && ($repodir = $Opt{'repodir'});
+
+my $spooldir = "$repodir/spool";
+my $logfile = "$repodir/$progname.log";
+my $pidfile = "$repodir/pid";
+my $stopfile = "$repodir/stop";
+
+if (! -d "$repodir/.") {
+    warn("$progname: $repodir: Missing repository top directory\n");
+    exit(1);
+}
+
+if (! -d "$spooldir/.") {
+    mkdir($spooldir) or die("$progname: $spooldir: Cannot create spool directory: $!\n");
+}
+
+open(my $logfh, '>>', $logfile)
+    or die("$progname: $logfile: Cannot open logfile: $!\n");
+$logfh->autoflush(1);
+flock($logfh, LOCK_EX | LOCK_NB)
+    or die("$progname: $logfile: Cannot lock file: $!.\n" .
+        "Is $progname already running?\n");
+
+my $do_loop = $Opt{'run-once'} ? 0 : 1;
+
+defined(my $pid = fork) or die("$progname: Cannot fork: $!");
+
+if ($pid) {
+    my $start_str = "Starting $progname v$VERSION, PID = $pid";
+    print("$start_str\n");
+    logmsg($start_str);
+    if (open(my $pidfh, '>', $pidfile)) {
+        print($pidfh "$pid\n");
+        close($pidfh);
+    }
+}
+
+exit if $pid;
+setsid or die("$progname: Cannot start a new session: $!\n");
+
+do {
+    if (-e "$repodir/stop") {
+        logmsg("$repodir/stop exists, terminating properly");
+        unlink("$repodir/stop") || logmsg("WARNING: Cannot remove $repodir/stop: $!");
+        unlink("$repodir/pid") || logmsg("WARNING: Cannot remove $repodir/pid: $!");
+        exit(0);
+    }
+    chdir($spooldir) || (logmsg("$spooldir: Cannot chdir to spool directory: $!. Aborting."), exit(1));
+    my @repos = glob('*');
+    if (scalar @repos) {
+        logmsg('Found new commits: ' . join(' ', @repos));
+        for my $repo (@repos) {
+            process_repo($repo);
+        }
+    }
+    sleep(1);
+} while($do_loop);
+
+exit;
+
+sub process_repo {
+    # {{{
+    my $repo = shift;
+    logmsg("Processing $repo");
+    my $repogit = "$repodir/$repo.git";
+    unless (chdir($repogit)) {
+        logmsg("$repogit: Cannot chdir: $!. Ignoring repository.");
+        goto endfunc;
+    }
+
+    my $force = git_config_value('gitspread.forcepush');
+    if ($force !~ /^(|false|true)$/) {
+        logmsg("WARNING: $repo: gitspread.forcepush contains invalid value \"$force\". " .
+            'Using "false".');
+        $force = 'false';
+    }
+    my $force_opt = $force eq 'true' ? ' -f' : '';
+    for my $remote (git_remotes()) {
+        system("git push$force_opt --all $remote >>$logfile 2>&1\n");
+        system("git push$force_opt --tags $remote >>$logfile 2>&1\n");
+    }
+
+endfunc:
+    unlink("$spooldir/$repo") || logmsg("WARNING: $spooldir/$repo: Cannot delete file: $!");
+    return;
+    # }}}
+} # process_repo()
+
+sub git_config_value {
+    # {{{
+    my $option = shift;
+    my $retval = '';
+    if (open(my $pipefh, "git config --get $option |")) {
+        local $/ = undef;
+        $retval = <$pipefh>;
+        close($pipefh) or
+            logmsg("WARNING: could not close \$pipefh in git_config_value(): $!");
+    } else {
+        logmsg("FATAL: git_config_value(): " .
+            "Cannot open \"git config --get\" pipe: $!. Aborting.");
+        exit(1);
+    }
+    chomp($retval);
+    return($retval);
+    # }}}
+} # git_config_value()
+
+sub git_remotes {
+    # {{{
+    my @retval = ();
+    if (open(my $pipefh, "git remote |")) {
+        while (<$pipefh>) {
+            chomp;
+            length($_) && push(@retval, $_);
+        }
+        close($pipefh) or
+            logmsg("WARNING: Could not close \$pipefh in git_remotes(): $!");
+    } else {
+        logmsg("FATAL: git_remotes(): " .
+            "Cannot open \"git remote\" pipe: $!. Aborting.");
+        exit(1);
+    }
+    return(@retval);
+    # }}}
+} # git_remotes()
+
+sub logmsg {
+    # {{{
+    my @txt = @_;
+    my ($sec, $min, $hour, $day, $mon, $year, $wday, $yday, $is_dst) =
+        gmtime(time);
+    my $timestamp = sprintf('%04u-%02u-%02u %02u:%02u:%02uZ',
+        $year+1900, $mon+1, $day, $hour, $min, $sec);
+    print($logfh "$timestamp - ", @txt, "\n");
+    return;
+    # }}}
+} # logmsg()
+
+sub print_version {
+    # Print program version {{{
+    print("$progname v$VERSION\n");
+    return;
+    # }}}
+} # print_version()
+
+sub usage {
+    # Send the help message to stdout {{{
+    my $Retval = shift;
+
+    if ($Opt{'verbose'}) {
+        print("\n");
+        print_version();
+    }
+    print(<<"END");
+
+Usage: $progname [options] [file [files [...]]]
+
+Options:
+
+  -h, --help
+    Show this help.
+  -r X, --repodir X
+    Use X as directory to store bare repos.
+    Default: "$Std{'repodir'}"
+  -1, --run-once
+    Just pass through the program once instead of looping. Used for 
+    testing purposes.
+  -v, --verbose
+    Increase level of verbosity. Can be repeated.
+  --version
+    Print version information.
+  --debug
+    Print debugging messages.
+
+END
+    exit($Retval);
+    # }}}
+} # usage()
+
+sub msg {
+    # Print a status message to stderr based on verbosity level {{{
+    my ($verbose_level, $Txt) = @_;
+
+    if ($Opt{'verbose'} >= $verbose_level) {
+        print(STDERR "$progname: $Txt\n");
+    }
+    return;
+    # }}}
+} # msg()
+
+sub D {
+    # Print a debugging message {{{
+    $Debug || return;
+    my @call_info = caller;
+    chomp(my $Txt = shift);
+    my $File = $call_info[1];
+    $File =~ s#\\#/#g;
+    $File =~ s#^.*/(.*?)$#$1#;
+    print(STDERR "$File:$call_info[2] $$ $Txt\n");
+    return('');
+    # }}}
+} # D()
+
+__END__
+
+# Plain Old Documentation (POD) {{{
+
+=pod
+
+=head1 NAME
+
+
+
+=head1 SYNOPSIS
+
+ [options] [file [files [...]]]
+
+=head1 DESCRIPTION
+
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Print a brief help summary.
+
+=item B<-v>, B<--verbose>
+
+Increase level of verbosity. Can be repeated.
+
+=item B<--version>
+
+Print version information.
+
+=item B<--debug>
+
+Print debugging messages.
+
+=back
+
+=head1 BUGS
+
+
+
+=head1 AUTHOR
+
+Made by Øyvind A. Holm S<E<lt>sunny@sunbase.orgE<gt>>.
+
+=head1 COPYRIGHT
+
+Copyleft © Øyvind A. Holm E<lt>sunny@sunbase.orgE<gt>
+This is free software; see the file F<COPYING> for legalese stuff.
+
+=head1 LICENCE
+
+This program is free software: you can redistribute it and/or modify it 
+under the terms of the GNU General Public License as published by the 
+Free Software Foundation, either version 3 of the License, or (at your 
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along 
+with this program.
+If not, see L<http://www.gnu.org/licenses/>.
+
+=head1 SEE ALSO
+
+=cut
+
+# }}}
+
+# vim: set fenc=UTF-8 ft=perl fdm=marker ts=4 sw=4 sts=4 et fo+=w :
