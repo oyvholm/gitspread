@@ -246,12 +246,24 @@ sub clone_bundle {
 
     my $bare_str = $bare ? " --bare" : "";
     my $bare_msg = $bare ? " bare repository" : "";
-    testcmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
-        "Cloning into$bare_msg $tmpdir/$dir...\n",
-        '',
+    likecmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
+        sprintf('/^.*%s.*$/s', regexp_friendly("$tmpdir/$dir")),
+        '/^$/',
         0,
         "Clone repo.bundle into $dir"
     );
+    ok(chdir("$tmpdir/$dir"), "chdir $tmpdir/$dir");
+    if ($bare) {
+        ok(-f 'HEAD' && -f 'config' && -d 'objects', "$tmpdir/$dir looks like a bare repository");
+    } else {
+        ok(-d '.git', "$tmpdir/$dir/.git is a directory");
+        likecmd('git status',
+            '/^.*On branch master.*$/s',
+            '/^$/',
+            0,
+            "git status in $tmpdir/$dir works",
+        );
+    }
     return;
     # }}}
 } # clone_bundle()
@@ -423,6 +435,15 @@ sub stop_daemon {
     return;
     # }}}
 } # stop_daemon()
+
+sub regexp_friendly {
+    # {{{
+    my $str = shift;
+    $str =~ s/\//\\\//gs;
+    $str =~ s/\./\\./gs;
+    return($str)
+    # }}}
+} # regexp_friendly()
 
 sub testcmd {
     # {{{
