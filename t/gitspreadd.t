@@ -370,13 +370,12 @@ sub push_to_repo_denied {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
-        '/^$/',
-        '/^.*' .
-        'error: failed to push some refs to .*' .
-        'To prevent you from losing history, non-fast-forward updates were rejected.*$/s',
+        '/^.*$/s',
+        '/^.*$/s',
         1,
         'Denied non-fast-forward push'
     );
+    check_log($SHOULD_EXIST, $repo, "Commit still exists in $repo");
     return;
     # }}}
 } # push_to_repo_denied()
