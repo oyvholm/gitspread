@@ -339,6 +339,7 @@ sub enable_gitspread_forcepush {
 
 sub push_to_repo_succeeds {
     # {{{
+    ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
         '/^$/',
         '/^.*' .
@@ -356,6 +357,7 @@ sub push_to_repo_succeeds {
 
 sub push_to_repo_denied {
     # {{{
+    ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
         '/^$/',
         '/^.*' .
@@ -370,6 +372,7 @@ sub push_to_repo_denied {
 
 sub push_to_repo_force_update {
     # {{{
+    ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("GITSPREAD_REPODIR=$tmpdir git push -f dest",
         '/^$/',
         '/^.*' .
