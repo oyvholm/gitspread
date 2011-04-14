@@ -276,7 +276,6 @@ sub setup_repo {
     my $bck_dir = cwd();
     ok(chdir($repo), 'chdir repo.git');
     testcmd("git remote add mirror $mirror", '', '', 0, 'Set up mirror remote');
-    testcmd("git remote rm origin", '', '', 0, 'Delete origin remote');
     ok(copy("$orig_dir/../post-receive", $hook), "Copy ../post-receive to $hook");
     ok(-e $hook, 'Yes, it was really copied');
     ok(chmod(0755, $hook), "Make $hook executable");
