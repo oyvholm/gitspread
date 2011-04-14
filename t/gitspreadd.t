@@ -188,20 +188,20 @@ start_daemon();
 
 add_and_commit_newfile();
 push_to_repo_succeeds();
-check_log($SHOULD_EXIST, 'Commit exists in mirror.git');
+check_log($SHOULD_EXIST, $mirror, 'Commit exists in mirror.git');
 
 diag('Check gitspread.forcepush config option...');
 reset_wrkdir_to_first_commit();
 push_to_repo_denied();
 push_to_repo_force_update();
-check_log($SHOULD_EXIST, 'Commit still exists in mirror.git');
+check_log($SHOULD_EXIST, $mirror, 'Commit still exists in mirror.git');
 
 enable_gitspread_forcepush();
 add_and_commit_newfile();
 push_to_repo_succeeds();
 reset_wrkdir_to_first_commit();
 push_to_repo_force_update();
-check_log($SHOULD_NOT_EXIST, 'Commit is gone from mirror.git');
+check_log($SHOULD_NOT_EXIST, $mirror, 'Commit is gone from mirror.git');
 
 stop_daemon();
 cleanup();
@@ -288,7 +288,7 @@ sub setup_mirror {
     # {{{
     testcmd("rm -rf $mirror", '', '', 0, 'Make sure mirror.git does not exist');
     clone_bundle('mirror.git', 1);
-    check_log($SHOULD_NOT_EXIST, 'The magical commit does not exist in mirror.git yet');
+    check_log($SHOULD_NOT_EXIST, $mirror, 'The magical commit does not exist in mirror.git yet');
     # }}}
 } # setup_mirror()
 
@@ -312,8 +312,8 @@ sub add_and_commit_newfile {
 
 sub check_log {
     # {{{
-    my ($should_exist, $msg) = @_;
-    ok(chdir($mirror), 'chdir mirror.git');
+    my ($should_exist, $dir, $msg) = @_;
+    ok(chdir($dir), "chdir $dir");
     if ($should_exist == $SHOULD_EXIST) {
         like(`git log`, '/^.*Adding a great newfile.*$/s', $msg);
     } else {
