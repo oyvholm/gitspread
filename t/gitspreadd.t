@@ -246,12 +246,16 @@ sub clone_bundle {
 
     my $bare_str = $bare ? " --bare" : "";
     my $bare_msg = $bare ? " bare repository" : "";
-    testcmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
-        "Cloning into$bare_msg $tmpdir/$dir...\n",
-        '',
+    likecmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
+        sprintf('/^.*%s.*$/s', regexp_friendly("$tmpdir/$dir")),
+        '/^$/',
         0,
         "Clone repo.bundle into $dir"
     );
+    ok(chdir("$tmpdir/$dir"), "chdir $tmpdir/$dir");
+    my $git_str = $bare ? "" : ".git/";
+    ok(-f "${git_str}HEAD" && -f "${git_str}config" && -d "${git_str}objects",
+        "$tmpdir/$dir looks like a real repository");
     return;
     # }}}
 } # clone_bundle()
@@ -264,7 +268,6 @@ sub setup_repo {
     my $bck_dir = cwd();
     ok(chdir($repo), 'chdir repo.git');
     testcmd("git remote add mirror $mirror", '', '', 0, 'Set up mirror remote');
-    testcmd("git remote rm origin", '', '', 0, 'Delete origin remote');
     ok(copy("$orig_dir/../post-receive", $hook), "Copy ../post-receive to $hook");
     ok(-e $hook, 'Yes, it was really copied');
     ok(chmod(0755, $hook), "Make $hook executable");
@@ -301,7 +304,7 @@ sub add_and_commit_newfile {
     ok(close($newfile), 'Close newfile');
     testcmd('git add newfile', '', '', 0, 'Add newfile for commit');
     likecmd('git commit -m "Adding a great newfile"',
-        '/^\[master [0-9a-f].*?\] Adding a great newfile\n.*$/s',
+        '/^.*Adding a great newfile\n.*$/s',
         '/^$/',
         0,
         'Commit addition of newfile'
@@ -343,11 +346,11 @@ sub push_to_repo_succeeds {
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
         '/^$/',
         '/^.*' .
-            'remote: Spreading repo commits:.*' .
-            'remote: a1989e25c8e7c23a3c455731f9433ed0932ec193 ' .
+            'Spreading repo commits:.*' .
+            'a1989e25c8e7c23a3c455731f9433ed0932ec193 ' .
             '[0-9a-f]{40} refs/heads/master.*' .
-            'remote: Waiting for spreading to complete\.\.\..*' .
-            'remote: Spreading finished.*$/s',
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*$/s',
         0,
         'Push to dest remote'
     );
@@ -359,13 +362,12 @@ sub push_to_repo_denied {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
-        '/^$/',
-        '/^.*' .
-        'error: failed to push some refs to .*' .
-        'To prevent you from losing history, non-fast-forward updates were rejected.*$/s',
+        '/^.*$/s',
+        '/^.*$/s',
         1,
         'Denied non-fast-forward push'
     );
+    check_log($SHOULD_EXIST, $repo, "Commit still exists in $repo");
     return;
     # }}}
 } # push_to_repo_denied()
@@ -376,12 +378,11 @@ sub push_to_repo_force_update {
     likecmd("GITSPREAD_REPODIR=$tmpdir git push -f dest",
         '/^$/',
         '/^.*' .
-            'remote: Spreading repo commits:.*' .
-            'remote: [0-9a-f]{40} ' .
+            'Spreading repo commits:.*' .
+            '[0-9a-f]{40} ' .
             'a1989e25c8e7c23a3c455731f9433ed0932ec193 refs/heads/master.*' .
-            'remote: Waiting for spreading to complete\.\.\..*' .
-            'remote: Spreading finished.*' .
-            '\.\.\.a1989e2 master -> master \(forced update\).*$/s',
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*/s',
         0,
         'Force-push to dest remote'
     );
@@ -423,6 +424,15 @@ sub stop_daemon {
     return;
     # }}}
 } # stop_daemon()
+
+sub regexp_friendly {
+    # {{{
+    my $str = shift;
+    $str =~ s/\//\\\//gs;
+    $str =~ s/\./\\./gs;
+    return($str)
+    # }}}
+} # regexp_friendly()
 
 sub testcmd {
     # {{{
