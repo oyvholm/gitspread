@@ -253,17 +253,9 @@ sub clone_bundle {
         "Clone repo.bundle into $dir"
     );
     ok(chdir("$tmpdir/$dir"), "chdir $tmpdir/$dir");
-    if ($bare) {
-        ok(-f 'HEAD' && -f 'config' && -d 'objects', "$tmpdir/$dir looks like a bare repository");
-    } else {
-        ok(-d '.git', "$tmpdir/$dir/.git is a directory");
-        likecmd('git status',
-            '/^.*On branch master.*$/s',
-            '/^$/',
-            0,
-            "git status in $tmpdir/$dir works",
-        );
-    }
+    my $git_str = $bare ? "" : ".git/";
+    ok(-f "${git_str}HEAD" && -f "${git_str}config" && -d "${git_str}objects",
+        "$tmpdir/$dir looks like a real repository");
     return;
     # }}}
 } # clone_bundle()
@@ -312,7 +304,7 @@ sub add_and_commit_newfile {
     ok(close($newfile), 'Close newfile');
     testcmd('git add newfile', '', '', 0, 'Add newfile for commit');
     likecmd('git commit -m "Adding a great newfile"',
-        '/^\[master [0-9a-f].*?\] Adding a great newfile\n.*$/s',
+        '/^.*Adding a great newfile\n.*$/s',
         '/^$/',
         0,
         'Commit addition of newfile'
@@ -354,11 +346,11 @@ sub push_to_repo_succeeds {
     likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
         '/^$/',
         '/^.*' .
-            'remote: Spreading repo commits:.*' .
-            'remote: a1989e25c8e7c23a3c455731f9433ed0932ec193 ' .
+            'Spreading repo commits:.*' .
+            'a1989e25c8e7c23a3c455731f9433ed0932ec193 ' .
             '[0-9a-f]{40} refs/heads/master.*' .
-            'remote: Waiting for spreading to complete\.\.\..*' .
-            'remote: Spreading finished.*$/s',
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*$/s',
         0,
         'Push to dest remote'
     );
@@ -386,12 +378,11 @@ sub push_to_repo_force_update {
     likecmd("GITSPREAD_REPODIR=$tmpdir git push -f dest",
         '/^$/',
         '/^.*' .
-            'remote: Spreading repo commits:.*' .
-            'remote: [0-9a-f]{40} ' .
+            'Spreading repo commits:.*' .
+            '[0-9a-f]{40} ' .
             'a1989e25c8e7c23a3c455731f9433ed0932ec193 refs/heads/master.*' .
-            'remote: Waiting for spreading to complete\.\.\..*' .
-            'remote: Spreading finished.*' .
-            '\.\.\.a1989e2 master -> master \(forced update\).*$/s',
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*/s',
         0,
         'Force-push to dest remote'
     );
