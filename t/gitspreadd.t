@@ -187,23 +187,23 @@ setup_mirror();
 start_daemon();
 
 create_file('newfile');
-add_and_commit_file();
+add_and_commit_file('newfile');
 push_to_repo_succeeds();
-check_log($SHOULD_EXIST, $mirror, 'Commit exists in mirror.git');
+check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile exists in mirror.git');
 
 diag('Check gitspread.forcepush config option...');
 reset_wrkdir_to_first_commit();
 push_to_repo_denied();
 push_to_repo_force_update();
-check_log($SHOULD_EXIST, $mirror, 'Commit still exists in mirror.git');
+check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile still exists in mirror.git');
 
 enable_gitspread_forcepush();
 create_file('newfile');
-add_and_commit_file();
+add_and_commit_file('newfile');
 push_to_repo_succeeds();
 reset_wrkdir_to_first_commit();
 push_to_repo_force_update();
-check_log($SHOULD_NOT_EXIST, $mirror, 'Commit is gone from mirror.git');
+check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile is gone from mirror.git');
 
 stop_daemon();
 cleanup();
@@ -293,20 +293,21 @@ sub setup_mirror {
     # {{{
     testcmd("rm -rf $mirror", '', '', 0, 'Make sure mirror.git does not exist');
     clone_bundle('mirror.git', 1);
-    check_log($SHOULD_NOT_EXIST, $mirror, 'The magical commit does not exist in mirror.git yet');
+    check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile does not exist in mirror.git yet');
     # }}}
 } # setup_mirror()
 
 sub add_and_commit_file {
     # {{{
+    my $file = shift;
     diag('Make a commit...');
     ok(chdir($wrkdir), "chdir $wrkdir");
-    testcmd('git add newfile', '', '', 0, 'Add newfile for commit');
-    likecmd('git commit -m "Adding a great newfile"',
-        '/^.*Adding a great newfile\n.*$/s',
+    testcmd("git add $file", '', '', 0, "Add $file for commit");
+    likecmd("git commit -m 'Adding new file $file'",
+        "/^.*Adding new file $file\\n.*\$/s",
         '/^$/',
         0,
-        'Commit addition of newfile'
+        "Commit addition of $file",
     );
     return;
     # }}}
@@ -314,12 +315,12 @@ sub add_and_commit_file {
 
 sub check_log {
     # {{{
-    my ($should_exist, $dir, $msg) = @_;
+    my ($should_exist, $dir, $file, $msg) = @_;
     ok(chdir($dir), "chdir $dir");
     if ($should_exist == $SHOULD_EXIST) {
-        like(`git log`, '/^.*Adding a great newfile.*$/s', $msg);
+        like(`git log`, "/^.*Adding new file $file.*\$/s", $msg);
     } else {
-        unlike(`git log`, '/^.*Adding a great newfile.*$/s', $msg);
+        unlike(`git log`, "/^.*Adding new file $file.*\$/s", $msg);
     }
     return;
     # }}}
@@ -377,7 +378,7 @@ sub push_to_repo_denied {
         1,
         'Denied non-fast-forward push'
     );
-    check_log($SHOULD_EXIST, $repo, "Commit still exists in $repo");
+    check_log($SHOULD_EXIST, $repo, 'newfile', "newfile still exists in $repo");
     return;
     # }}}
 } # push_to_repo_denied()
