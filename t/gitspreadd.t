@@ -186,6 +186,7 @@ setup_mirror();
 
 start_daemon();
 
+create_file('newfile');
 add_and_commit_newfile();
 push_to_repo_succeeds();
 check_log($SHOULD_EXIST, $mirror, 'Commit exists in mirror.git');
@@ -197,6 +198,7 @@ push_to_repo_force_update();
 check_log($SHOULD_EXIST, $mirror, 'Commit still exists in mirror.git');
 
 enable_gitspread_forcepush();
+create_file('newfile');
 add_and_commit_newfile();
 push_to_repo_succeeds();
 reset_wrkdir_to_first_commit();
@@ -299,9 +301,6 @@ sub add_and_commit_newfile {
     # {{{
     diag('Make a commit...');
     ok(chdir($wrkdir), "chdir $wrkdir");
-    ok(open(my $newfile, '>', 'newfile'), 'Create newfile');
-    ok(print($newfile "This file is new.\n"), 'Write to newfile');
-    ok(close($newfile), 'Close newfile');
     testcmd('git add newfile', '', '', 0, 'Add newfile for commit');
     likecmd('git commit -m "Adding a great newfile"',
         '/^.*Adding a great newfile\n.*$/s',
@@ -325,6 +324,17 @@ sub check_log {
     return;
     # }}}
 } # check_log()
+
+sub create_file {
+    # {{{
+    my $filename = shift;
+    ok(chdir($wrkdir), "chdir $wrkdir");
+    ok(open(my $newfile, '>', $filename), "Create $filename");
+    ok(print($newfile "This is $filename\n"), "Write to $filename");
+    ok(close($newfile), "Close $filename");
+    return;
+    # }}}
+} # create_file()
 
 sub enable_gitspread_forcepush {
     # {{{
