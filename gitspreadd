@@ -163,8 +163,7 @@ sub git_config_value {
     if (open(my $pipefh, "git config --get $option |")) {
         local $/ = undef;
         $retval = <$pipefh>;
-        close($pipefh) or
-            logmsg("WARNING: could not close \$pipefh in git_config_value(): $!");
+        close($pipefh);
     } else {
         logmsg("FATAL: git_config_value(): " .
             "Cannot open \"git config --get\" pipe: $!. Aborting.");
