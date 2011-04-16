@@ -187,7 +187,7 @@ setup_mirror();
 start_daemon();
 
 create_file('newfile');
-add_and_commit_newfile();
+add_and_commit_file();
 push_to_repo_succeeds();
 check_log($SHOULD_EXIST, $mirror, 'Commit exists in mirror.git');
 
@@ -199,7 +199,7 @@ check_log($SHOULD_EXIST, $mirror, 'Commit still exists in mirror.git');
 
 enable_gitspread_forcepush();
 create_file('newfile');
-add_and_commit_newfile();
+add_and_commit_file();
 push_to_repo_succeeds();
 reset_wrkdir_to_first_commit();
 push_to_repo_force_update();
@@ -297,7 +297,7 @@ sub setup_mirror {
     # }}}
 } # setup_mirror()
 
-sub add_and_commit_newfile {
+sub add_and_commit_file {
     # {{{
     diag('Make a commit...');
     ok(chdir($wrkdir), "chdir $wrkdir");
@@ -310,7 +310,7 @@ sub add_and_commit_newfile {
     );
     return;
     # }}}
-} # add_and_commit_newfile()
+} # add_and_commit_file()
 
 sub check_log {
     # {{{
