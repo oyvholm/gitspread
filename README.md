@@ -76,6 +76,21 @@ Gitspread can be cloned from the following repositories:
 - `git://github.com/sunny256/gitspread.git`
 - `git://repo.or.cz/gitspread.git`
 
+Git branches
+------------
+
+The `master` branch is considered stable and will never be rebased. 
+Every new functionality or bug fix is created on topic branches which 
+may be rebased now and then. All tests on `master` (executed with "make 
+test") should succeed. If any test fails, it’s considered a bug and 
+should be reported in the issue tracker.
+
+Bugs and suggestions
+--------------------
+
+Bugs and suggestions can be filed in the issue tracker at 
+<https://github.com/sunny256/gitspread/issues> .
+
 License
 -------
 
