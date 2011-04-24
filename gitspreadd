@@ -144,10 +144,10 @@ sub process_repo {
             'Using "false".');
         $force = 'false';
     }
-    my $force_opt = $force eq 'true' ? ' -f' : '';
+    my $force_opt = $force eq 'true' ? '-f' : '';
     for my $remote (git_remotes()) {
-        system("git push$force_opt --all $remote >>$logfile 2>&1\n");
-        system("git push$force_opt --tags $remote >>$logfile 2>&1\n");
+        exec_command('git', 'push', $force_opt, '--all', $remote);
+        exec_command('git', 'push', $force_opt, '--tags', $remote);
     }
 
 endfunc:
@@ -155,6 +155,15 @@ endfunc:
     return;
     # }}}
 } # process_repo()
+
+sub exec_command {
+    # {{{
+    my @args = @_;
+    logmsg("Executing '" . join(' ', @args) . "'");
+    system(join(' ', @args, ">>$logfile", '2>&1'));
+    return;
+    # }}}
+} # exec_command()
 
 sub git_config_value {
     # {{{
