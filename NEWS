@@ -1,0 +1,29 @@
+Summary of user-visible changes in Gitspread
+============================================
+
+For a complete log of changes, please refer to the Git commit log in the 
+repositories mentioned in README.md .
+
+v0.02 - 2011-04-24
+  - Deleted branches are propagated further to the remotes
+  - Update tests to all current functionality (total 206 tests)
+  - Make tests work with old Git versions, at least back to git-1.5.6.5
+  - Add COPYING (GNU General Public License v3)
+  - Add this file (NEWS)
+  - Update README.md
+  - Remove wrong info from usage() screen
+  - Remove annoying close() warning in log file
+
+v0.01 - 2011-04-09
+  - Convert gitspreadd from Bash to Perl
+  - Rename Bash version to gitspreadd.sh and mark it as obsolete
+  - Add -r/--repodir option
+  - Add -1/--run-once option
+  - Log actions to log file
+  - Add support for $GITSPREAD_REPODIR enviromnent variable
+  - Set up test suite and create tests for all current functionality
+
+Pre-0.01 (Bash version)
+- Initial release using bash scripts.
+
+vim: set ts=2 sw=2 sts=2 fo=tcqw fenc=utf8 :
