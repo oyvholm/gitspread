@@ -205,6 +205,21 @@ reset_wrkdir_to_first_commit();
 push_to_repo_force_update();
 check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile is gone from mirror.git');
 
+diag('Create branch, push it, and then remove it...');
+create_branch('newbranch1');
+create_file('branchfile1');
+add_and_commit_file('branchfile1');
+create_branch('newbranch2');
+create_file('branchfile2');
+add_and_commit_file('branchfile2');
+push_new_branch('newbranch1', 'newbranch2');
+check_log($SHOULD_EXIST, $mirror, 'branchfile1', 'branchfile1 exists in mirror.git');
+check_log($SHOULD_EXIST, $mirror, 'branchfile2', 'branchfile2 exists in mirror.git');
+delete_branch('newbranch1', 'newbranch2');
+delete_remote_branch('newbranch1', 'newbranch2');
+check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile1', 'branchfile1 is gone from mirror.git');
+check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile2', 'branchfile2 is gone from mirror.git');
+
 stop_daemon();
 cleanup();
 
@@ -318,9 +333,9 @@ sub check_log {
     my ($should_exist, $dir, $file, $msg) = @_;
     ok(chdir($dir), "chdir $dir");
     if ($should_exist == $SHOULD_EXIST) {
-        like(`git log`, "/^.*Adding new file $file.*\$/s", $msg);
+        like(`git log --all`, "/^.*Adding new file $file.*\$/s", $msg);
     } else {
-        unlike(`git log`, "/^.*Adding new file $file.*\$/s", $msg);
+        unlike(`git log --all`, "/^.*Adding new file $file.*\$/s", $msg);
     }
     return;
     # }}}
@@ -336,6 +351,41 @@ sub create_file {
     return;
     # }}}
 } # create_file()
+
+sub create_branch {
+    # {{{
+    my $branch = shift;
+    ok(chdir($wrkdir), "chdir $wrkdir");
+    likecmd("git checkout -b $branch",
+        '/^$/s',
+        "/^Switched to a new branch .$branch.\\n\$/s",
+        0,
+        "Create branch $branch",
+    );
+    return;
+    # }}}
+} # create_branch()
+
+sub delete_branch {
+    # {{{
+    my @branches = @_;
+    ok(chdir($wrkdir), "chdir $wrkdir");
+    my $branch_str = join(' ', @branches);
+    likecmd('git checkout master',
+        '/^$/s',
+        '/.*master.*$/s',
+        0,
+        'Checkout branch master',
+    );
+    likecmd("git branch -D $branch_str",
+        "/^Deleted branch $branches[0].*\$/s",
+        '/^$/s',
+        0,
+        "Delete branch(es) '$branch_str'",
+    );
+    return;
+    # }}}
+} # delete_branch()
 
 sub enable_gitspread_forcepush {
     # {{{
@@ -368,6 +418,46 @@ sub push_to_repo_succeeds {
     return;
     # }}}
 } # push_to_repo_succeeds()
+
+sub push_new_branch {
+    # {{{
+    my @branches = @_;
+    ok(chdir($wrkdir), 'chdir wrkdir');
+    my $branch_str = join(' ', @branches);
+    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest $branch_str",
+        '/^$/',
+        '/^.*' .
+            'Spreading repo commits:.*' .
+            '0{40} ' .
+            "[0-9a-f]{40} refs/heads/$branches[0].*" .
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*$/s',
+        0,
+        "Push '$branch_str' branch(es) to dest remote"
+    );
+    return;
+    # }}}
+} # push_new_branch()
+
+sub delete_remote_branch {
+    # {{{
+    my @branches = @_;
+    ok(chdir($wrkdir), 'chdir wrkdir');
+    my $branch_str = ':' . join(' :', @branches);
+    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest $branch_str",
+        '/^$/',
+        '/^.*' .
+            'Spreading repo commits:.*' .
+            '[0-9a-f]{40} ' .
+            "0{40} refs/heads/$branches[0].*" .
+            'Waiting for spreading to complete\.\.\..*' .
+            'Spreading finished.*$/s',
+        0,
+        "Delete remote branch(es) '$branch_str'"
+    );
+    return;
+    # }}}
+} # delete_remote_branch()
 
 sub push_to_repo_denied {
     # {{{

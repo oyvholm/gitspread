@@ -137,6 +137,20 @@ sub process_repo {
         logmsg("$repogit: Cannot chdir: $!. Ignoring repository.");
         goto endfunc;
     }
+    my @deleted_branches = ();
+    if (open(my $fh, '<', "$spooldir/$repo")) {
+        while (<$fh>) {
+            chomp(my $line = $_);
+            if ($line =~ /^[0-9a-f]{40} 0{40} refs\/heads\/(.*)$/) {
+                my $deleted_branch = $1;
+                push(@deleted_branches, $deleted_branch);
+            }
+        }
+        close($fh);
+    } else {
+        logmsg("$spooldir/$repo: Cannot open file for read: $!. Ignoring repository $repo.");
+        goto endfunc;
+    }
 
     my $force = git_config_value('gitspread.forcepush');
     if ($force !~ /^(|false|true)$/) {
@@ -146,6 +160,11 @@ sub process_repo {
     }
     my $force_opt = $force eq 'true' ? '-f' : '';
     for my $remote (git_remotes()) {
+        if (scalar(@deleted_branches)) {
+            for my $branch (@deleted_branches) {
+                exec_command('git', 'push', $remote, ":$branch");
+            }
+        }
         exec_command('git', 'push', $force_opt, '--all', $remote);
         exec_command('git', 'push', $force_opt, '--tags', $remote);
     }
