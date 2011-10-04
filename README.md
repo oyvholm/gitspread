@@ -74,6 +74,7 @@ Gitspread can be cloned from the following repositories:
 
 - `git://gitorious.org/sunny256/gitspread.git`
 - `git://github.com/sunny256/gitspread.git`
+- `https://bitbucket.org/sunny256/gitspread.git`
 - `git://repo.or.cz/gitspread.git`
 
 Git branches
