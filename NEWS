@@ -30,7 +30,7 @@ v0.01 - 2011-04-09
   - Add -r/--repodir option
   - Add -1/--run-once option
   - Log actions to log file
-  - Add support for $GITSPREAD_REPODIR enviromnent variable
+  - Add support for $GITSPREAD_REPODIR environment variable
   - Set up test suite and create tests for all current functionality
 
 Pre-0.01 (Bash version)
