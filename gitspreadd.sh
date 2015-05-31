@@ -4,7 +4,7 @@
 # gitspreadd
 # File ID: 9277e412-5ebe-11e0-ae13-fefdb24f8e10
 # Push received commits and tags to other remotes to save bandwith
-# License: GNU General Public License version 3 or later.
+# License: GNU General Public License version 2 or later.
 #=======================================================================
 
 # This file is obsolete, and is superseded by the Perl version.
