@@ -41,8 +41,7 @@ Setup
 ### Local computer
 
 - Set up a git remote on the local computer which has a slow connection:
-  - `git remote add spread 
-    user@example.org:/home/user/Git-spread/project.git`
+  - `git remote add spread user@example.org:Git-spread/project.git`
 
 That’s all there is. From now on, you can push to the "spread" remote 
 and let the remote server with a faster connection take care of 
