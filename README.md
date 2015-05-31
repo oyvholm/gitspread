@@ -80,8 +80,8 @@ Source code
 
 Gitspread can be cloned from the following repositories:
 
+- `https://gitlab.com/sunny256/gitspread.git` (Main repo)
 - `git://github.com/sunny256/gitspread.git`
-- `https://gitlab.com/sunny256/gitspread.git`
 - `https://bitbucket.org/sunny256/gitspread.git`
 - `git://repo.or.cz/gitspread.git`
 
@@ -98,7 +98,7 @@ Bugs and suggestions
 --------------------
 
 Bugs and suggestions can be filed in the issue tracker at 
-<https://github.com/sunny256/gitspread/issues> .
+<https://gitlab.com/sunny256/gitspread/issues> .
 
 License
 -------
