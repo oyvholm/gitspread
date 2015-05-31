@@ -372,8 +372,8 @@ sub delete_branch {
     ok(chdir($wrkdir), "chdir $wrkdir");
     my $branch_str = join(' ', @branches);
     likecmd('git checkout master',
-        '/^$/s',
-        '/.*master.*$/s',
+        '/.*/s',
+        '/.*/s',
         0,
         'Checkout branch master',
     );
