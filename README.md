@@ -15,6 +15,8 @@ that server.
 Setup
 -----
 
+### Server setup
+
 - Create a directory called `$HOME/Git-spread/`.
 - Create a bare repository for each project under that directory:
   - `git init --bare $HOME/Git-spread/project.git`
@@ -35,6 +37,9 @@ Setup
   - `gitspreadd`
 - Detach the screen/tmux session. `gitspreadd` is now running there even 
   when the current shell is terminated.
+
+### Local computer
+
 - Set up a git remote on the local computer which has a slow connection:
   - `git remote add spread 
     user@example.org:/home/user/Git-spread/project.git`
@@ -48,8 +53,7 @@ When the file is gone, the process is terminated. The PID of the current
 process is stored in a file named `pid`. This file is also deleted when 
 the process terminates properly.
 
-Directory location
-------------------
+### Directory location
 
 If you don’t want to use `$HOME/Git-spread` as the location for the 
 repositories, either set the `$GITSPREAD_REPODIR` environment variable 
@@ -61,8 +65,7 @@ Use the location specified by the `-r`/`--repodir` command line option,
 otherwise use `$GITSPREAD_REPODIR` if defined, otherwise use hardcoded 
 value `$HOME/Git-spread`.
 
-Configuration
--------------
+### Configuration
 
 The following option can be used in the bare repositories:
 
