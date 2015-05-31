@@ -264,8 +264,8 @@ sub clone_bundle {
     my $bare_str = $bare ? " --bare" : "";
     my $bare_msg = $bare ? " bare repository" : "";
     likecmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
-        sprintf('/^.*%s.*$/s', regexp_friendly("$tmpdir/$dir")),
-        '/^$/',
+        '/.*/',
+        '/.*/',
         0,
         "Clone repo.bundle into $dir"
     );
