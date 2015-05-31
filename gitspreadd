@@ -34,6 +34,7 @@ our %Opt = (
 
     'debug' => 0,
     'help' => 0,
+    'quiet' => 0,
     'repodir' => '',
     'run-once' => 0,
     'verbose' => 0,
@@ -50,6 +51,7 @@ GetOptions(
 
     'debug' => \$Opt{'debug'},
     'help|h' => \$Opt{'help'},
+    'quiet|q+' => \$Opt{'quiet'},
     'repodir|r=s' => \$Opt{'repodir'},
     'run-once|1' => \$Opt{'run-once'},
     'verbose|v+' => \$Opt{'verbose'},
@@ -58,6 +60,7 @@ GetOptions(
 ) || die("$progname: Option error. Use -h for help.\n");
 
 $Opt{'debug'} && ($Debug = 1);
+$Opt{'verbose'} -= $Opt{'quiet'};
 $Opt{'help'} && usage(0);
 if ($Opt{'version'}) {
     print_version();
@@ -235,7 +238,7 @@ sub logmsg {
 
 sub print_version {
     # Print program version {{{
-    print("$progname v$VERSION\n");
+    printf("%sv$VERSION\n", $Opt{'verbose'} >= 0 ? "$progname " : "");
     return;
     # }}}
 } # print_version()
@@ -244,7 +247,7 @@ sub usage {
     # Send the help message to stdout {{{
     my $Retval = shift;
 
-    if ($Opt{'verbose'}) {
+    if ($Opt{'verbose'} > 0) {
         print("\n");
         print_version();
     }
@@ -252,6 +255,9 @@ sub usage {
 
 Usage: $progname [options]
 
+END
+    if ($Opt{'verbose'} >= 0) {
+        print(<<END);
 Options:
 
   -h, --help
@@ -262,6 +268,8 @@ Options:
   -1, --run-once
     Just pass through the program once instead of looping. Used for 
     testing purposes.
+  -q, --quiet
+    Be more quiet. Can be repeated to increase silence.
   -v, --verbose
     Increase level of verbosity. Can be repeated.
   --version
@@ -270,6 +278,7 @@ Options:
     Print debugging messages.
 
 END
+    }
     exit($Retval);
     # }}}
 } # usage()

@@ -104,6 +104,15 @@ likecmd("$CMD -h", # {{{
 );
 
 # }}}
+diag('Testing -q (--quiet) option...');
+likecmd("$CMD --version -q", # {{{
+    '/^v\d\.\d\d\n/s',
+    '/^$/',
+    0,
+    'Option -q with --version does not output program name',
+);
+
+# }}}
 diag('Testing -v (--verbose) option...');
 likecmd("$CMD -hv", # {{{
     '/^\n\S+ v\d\.\d\d\n/s',
