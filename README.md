@@ -2,7 +2,7 @@ README for Gitspread
 ====================
 
 A project is often stored on several hosting services like 
-[Gitorious](http://gitorious.org/), [GitHub](http://github.com/), 
+[GitLab](https://gitlab.com/), [GitHub](http://github.com/), 
 [repo.or.cz](http://repo.or.cz/) or similar for backup purposes. 
 Ideally, all these repositories should be updated at the same time when 
 pushing. If you’re using a slow Internet connection, like a mobile 
@@ -26,7 +26,7 @@ Setup
   - or manually insert the code if `hooks/post-receive` already exists.
 - Define all necessary remotes using SSH push URLs, for example:
   - `cd ~/Git-spread/project.git`
-  - `git remote add gitorious git@gitorious.org:foo/project.git`
+  - `git remote add gitlab git@gitlab.com:foo/project.git`
   - `git remote add github git@github.com:user/project.git`
 - Start a [screen](http://www.gnu.org/software/screen/) or 
   [tmux](http://tmux.sourceforge.net/) session.
@@ -81,7 +81,7 @@ Source code
 Gitspread can be cloned from the following repositories:
 
 - `git://github.com/sunny256/gitspread.git`
-- `git://gitorious.org/sunny256/gitspread.git`
+- `https://gitlab.com/sunny256/gitspread.git`
 - `https://bitbucket.org/sunny256/gitspread.git`
 - `git://repo.or.cz/gitspread.git`
 
