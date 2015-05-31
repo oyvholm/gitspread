@@ -2,7 +2,7 @@ README for Gitspread
 ====================
 
 A project is often stored on several hosting services like 
-[GitLab](https://gitlab.com/), [GitHub](http://github.com/), 
+[GitLab](https://gitlab.com/), [GitHub](https://github.com/), 
 [repo.or.cz](http://repo.or.cz/) or similar for backup purposes. 
 Ideally, all these repositories should be updated at the same time when 
 pushing. If you’re using a slow Internet connection, like a mobile 
