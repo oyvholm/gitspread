@@ -4,6 +4,16 @@ Summary of user-visible changes in Gitspread
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in README.md .
 
+v0.10 - 2015-05-31
+  - Change license from "GPL v3 or later" to "GPL v2 or later"
+  - Fix failing tests due to changed output from newer git(1) versions
+  - Add -q/--quiet option to gitspreadd
+  - Delete obsolete bash version of gitspreadd
+  - Change official gitspread location from GitHub.com to GitLab.com
+  - Replace Gitorious location with GitLab
+  - Documentation updates
+  - Delete Perl POD, documentation is stored as CommonMark/MarkDown
+
 v0.02 - 2011-04-24
   - Deleted branches are propagated further to the remotes
   - Update tests to all current functionality (total 206 tests)

@@ -44,7 +44,7 @@ our %Opt = (
 
 our $progname = $0;
 $progname =~ s/^.*\/(.*?)$/$1/;
-our $VERSION = '0.02';
+our $VERSION = '0.10';
 
 Getopt::Long::Configure('bundling');
 GetOptions(
