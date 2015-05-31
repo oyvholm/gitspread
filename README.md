@@ -26,11 +26,15 @@ Setup
   - `cd ~/Git-spread/project.git`
   - `git remote add gitorious git@gitorious.org:foo/project.git`
   - `git remote add github git@github.com:user/project.git`
-- Start the `gitspreadd` daemon in a shell where `ssh-agent` is 
-  activated:
+- Start a [screen](http://www.gnu.org/software/screen/) or 
+  [tmux](http://tmux.sourceforge.net/) session.
+- Start the `gitspreadd` daemon inside the screen/tmux session in a 
+  shell where `ssh-agent` is activated:
   - `ssh-agent bash`
   - `ssh-add ~/.ssh/id_dsa`
   - `gitspreadd`
+- Detach the screen/tmux session. `gitspreadd` is now running there even 
+  when the current shell is terminated.
 - Set up a git remote on the local computer which has a slow connection:
   - `git remote add spread 
     user@example.org:/home/user/Git-spread/project.git`
