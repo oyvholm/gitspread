@@ -61,9 +61,10 @@ to the preferred directory, or change the value of `$repodir` in
 `post-receive` and run `gitspreadd` with the `-r`/`--repodir` option. 
 The gitspreadd daemon chooses the directory this way:
 
-Use the location specified by the `-r`/`--repodir` command line option, 
-otherwise use `$GITSPREAD_REPODIR` if defined, otherwise use hardcoded 
-value `$HOME/Git-spread`.
+- Use the location specified by the `-r`/`--repodir` command line 
+  option,
+- otherwise use `$GITSPREAD_REPODIR` if defined,
+- otherwise use hardcoded value `$HOME/Git-spread`.
 
 ### Configuration
 
