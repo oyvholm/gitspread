@@ -149,7 +149,7 @@ my $pidfile = "$tmpdir/pid";
 my $stopfile = "$tmpdir/stop";
 
 cleanup();
-testcmd("$CMD -1 -r $tmpdir", # {{{
+testcmd("$CMD -1 -r \"$tmpdir\"", # {{{
     '',
     "gitspreadd: $tmpdir: Missing repository top directory\n",
     1,
@@ -158,7 +158,7 @@ testcmd("$CMD -1 -r $tmpdir", # {{{
 
 # }}}
 create_tmpdir();
-likecmd("$CMD -1 -r $tmpdir", # {{{
+likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
     '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
     '/^$/',
     0,
@@ -176,7 +176,7 @@ like(file_data($logfile), # {{{
 # }}}
 cleanup();
 create_tmpdir();
-likecmd("GITSPREAD_REPODIR=$tmpdir $CMD -1", # {{{
+likecmd("GITSPREAD_REPODIR=\"$tmpdir\" $CMD -1", # {{{
     '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
     '/^$/',
     0,
@@ -252,7 +252,7 @@ diag('Testing finished.');
 sub cleanup {
     # {{{
     ok(chdir($orig_dir), "chdir $orig_dir");
-    testcmd("rm -rf $tmpdir", '', '', 0, 'Delete tmpdir');
+    testcmd("rm -rf \"$tmpdir\"", '', '', 0, 'Delete tmpdir');
     ok(!-e $tmpdir, "$tmpdir does not exist");
     return;
     # }}}
@@ -272,7 +272,7 @@ sub clone_bundle {
 
     my $bare_str = $bare ? " --bare" : "";
     my $bare_msg = $bare ? " bare repository" : "";
-    likecmd("git clone$bare_str $orig_dir/repo.bundle $tmpdir/$dir",
+    likecmd("git clone$bare_str \"$orig_dir/repo.bundle\" \"$tmpdir/$dir\"",
         '/.*/',
         '/.*/',
         0,
@@ -289,11 +289,11 @@ sub clone_bundle {
 sub setup_repo {
     # {{{
     diag('Create repo.git...');
-    testcmd("rm -rf $repo", '', '', 0, 'Make sure repo.git does not exist');
+    testcmd("rm -rf \"$repo\"", '', '', 0, 'Make sure repo.git does not exist');
     clone_bundle('repo.git', 1);
     my $bck_dir = cwd();
     ok(chdir($repo), 'chdir repo.git');
-    testcmd("git remote add mirror $mirror", '', '', 0, 'Set up mirror remote');
+    testcmd("git remote add mirror \"$mirror\"", '', '', 0, 'Set up mirror remote');
     ok(copy("$orig_dir/../post-receive", $hook), "Copy ../post-receive to $hook");
     ok(-e $hook, 'Yes, it was really copied');
     ok(chmod(0755, $hook), "Make $hook executable");
@@ -305,17 +305,17 @@ sub setup_repo {
 
 sub setup_wrkdir {
     # {{{
-    testcmd("rm -rf $wrkdir", '', '', 0, 'Make sure wrkdir does not exist');
+    testcmd("rm -rf \"$wrkdir\"", '', '', 0, 'Make sure wrkdir does not exist');
     clone_bundle('wrkdir', 0);
     ok(chdir($wrkdir), 'chdir wrkdir');
-    testcmd("git remote add dest $repo", '', '', 0, 'Set up dest remote');
+    testcmd("git remote add dest \"$repo\"", '', '', 0, 'Set up dest remote');
     return;
     # }}}
 } # setup_wrkdir()
 
 sub setup_mirror {
     # {{{
-    testcmd("rm -rf $mirror", '', '', 0, 'Make sure mirror.git does not exist');
+    testcmd("rm -rf \"$mirror\"", '', '', 0, 'Make sure mirror.git does not exist');
     clone_bundle('mirror.git', 1);
     check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile does not exist in mirror.git yet');
     # }}}
@@ -326,7 +326,7 @@ sub add_and_commit_file {
     my $file = shift;
     diag('Make a commit...');
     ok(chdir($wrkdir), "chdir $wrkdir");
-    testcmd("git add $file", '', '', 0, "Add $file for commit");
+    testcmd("git add \"$file\"", '', '', 0, "Add $file for commit");
     likecmd("git commit -m 'Adding new file $file'",
         "/^.*Adding new file $file\\n.*\$/s",
         '/^$/',
@@ -365,7 +365,7 @@ sub create_branch {
     # {{{
     my $branch = shift;
     ok(chdir($wrkdir), "chdir $wrkdir");
-    likecmd("git checkout -b $branch",
+    likecmd("git checkout -b \"$branch\"",
         '/^$/s',
         "/^Switched to a new branch .$branch.\\n\$/s",
         0,
@@ -413,7 +413,7 @@ sub enable_gitspread_forcepush {
 sub push_to_repo_succeeds {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
-    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" git push dest",
         '/^$/',
         '/^.*' .
             'Spreading repo commits:.*' .
@@ -433,7 +433,7 @@ sub push_new_branch {
     my @branches = @_;
     ok(chdir($wrkdir), 'chdir wrkdir');
     my $branch_str = join(' ', @branches);
-    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest $branch_str",
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" git push dest $branch_str",
         '/^$/',
         '/^.*' .
             'Spreading repo commits:.*' .
@@ -453,7 +453,7 @@ sub delete_remote_branch {
     my @branches = @_;
     ok(chdir($wrkdir), 'chdir wrkdir');
     my $branch_str = ':' . join(' :', @branches);
-    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest $branch_str",
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" git push dest $branch_str",
         '/^$/',
         '/^.*' .
             'Spreading repo commits:.*' .
@@ -471,7 +471,7 @@ sub delete_remote_branch {
 sub push_to_repo_denied {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
-    likecmd("GITSPREAD_REPODIR=$tmpdir git push dest",
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" git push dest",
         '/^.*$/s',
         '/^.*$/s',
         1,
@@ -485,7 +485,7 @@ sub push_to_repo_denied {
 sub push_to_repo_force_update {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
-    likecmd("GITSPREAD_REPODIR=$tmpdir git push -f dest",
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" git push -f dest",
         '/^$/',
         '/^.*' .
             'Spreading repo commits:.*' .
@@ -516,7 +516,7 @@ sub reset_wrkdir_to_first_commit {
 sub start_daemon {
     # {{{
     diag('Starting daemon...');
-    system("$orig_dir/$CMD -r $tmpdir");
+    system("\"$orig_dir/$CMD\" -r \"$tmpdir\"");
     ok(-e $pidfile, 'PID file exists');
     like(file_data($pidfile), '/^\d+\n$/s', 'PID file looks ok');
     return;
