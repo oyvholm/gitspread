@@ -44,7 +44,7 @@ our %Opt = (
 
 our $progname = $0;
 $progname =~ s/^.*\/(.*?)$/$1/;
-our $VERSION = '0.10';
+our $VERSION = '0.10.0';
 
 Getopt::Long::Configure('bundling');
 GetOptions(
@@ -99,7 +99,7 @@ my $do_loop = $Opt{'run-once'} ? 0 : 1;
 defined(my $pid = fork) or die("$progname: Cannot fork: $!");
 
 if ($pid) {
-    my $start_str = "Starting $progname v$VERSION, PID = $pid";
+    my $start_str = "Starting $progname $VERSION, PID = $pid";
     print("$start_str\n");
     logmsg($start_str);
     if (open(my $pidfh, '>', $pidfile)) {
@@ -238,7 +238,7 @@ sub logmsg {
 
 sub print_version {
     # Print program version {{{
-    printf("%sv$VERSION\n", $Opt{'verbose'} >= 0 ? "$progname " : "");
+    printf("%s$VERSION\n", $Opt{'verbose'} >= 0 ? "$progname " : "");
     return;
     # }}}
 } # print_version()
@@ -273,7 +273,8 @@ Options:
   -v, --verbose
     Increase level of verbosity. Can be repeated.
   --version
-    Print version information.
+    Print version information. "Semantic versioning" is used, described 
+    at <http://semver.org>.
   --debug
     Print debugging messages.
 

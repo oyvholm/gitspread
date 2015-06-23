@@ -93,6 +93,20 @@ may be rebased now and then. All tests on `master` (executed with "make
 test") should succeed. If any test fails, it’s considered a bug and 
 should be reported in the issue tracker.
 
+Version compatibility
+---------------------
+
+To ensure compatibility between versions, the program follows the 
+Semantic Versioning Specification described at <http://semver.org>. 
+Using the version number `X.Y.Z` as an example:
+
+- `X` is the *major version*. This number is only incremented when 
+  backwards-incompatible changes are introduced.
+- `Y` is the *minor version*. Increased when new backwards-compatible 
+  features are added.
+- `Z` is the *patch level*. Increased when new backwards-compatible 
+  bugfixes are added.
+
 Bugs and suggestions
 --------------------
 

@@ -45,7 +45,7 @@ our %Opt = (
 
 our $progname = $0;
 $progname =~ s/^.*\/(.*?)$/$1/;
-our $VERSION = '0.10';
+our $VERSION = '0.10.0';
 
 Getopt::Long::Configure('bundling');
 GetOptions(
@@ -106,7 +106,7 @@ likecmd("$CMD -h", # {{{
 # }}}
 diag('Testing -q (--quiet) option...');
 likecmd("$CMD --version -q", # {{{
-    '/^v\d\.\d\d\n/s',
+    '/^\d\.\d+\.\d+\n/s',
     '/^$/',
     0,
     'Option -q with --version does not output program name',
@@ -115,7 +115,7 @@ likecmd("$CMD --version -q", # {{{
 # }}}
 diag('Testing -v (--verbose) option...');
 likecmd("$CMD -hv", # {{{
-    '/^\n\S+ v\d\.\d\d\n/s',
+    '/^\n\S+ \d\.\d+\.\d+\n/s',
     '/^$/',
     0,
     'Option --version with -h returns version number and help screen',
@@ -124,7 +124,7 @@ likecmd("$CMD -hv", # {{{
 # }}}
 diag('Testing --version option...');
 likecmd("$CMD --version", # {{{
-    '/^\S+ v\d\.\d\d\n/',
+    '/^\S+ \d\.\d+\.\d+\n/',
     '/^$/',
     0,
     'Option --version returns version number',
@@ -159,7 +159,7 @@ testcmd("$CMD -1 -r \"$tmpdir\"", # {{{
 # }}}
 create_tmpdir();
 likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
-    '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
+    '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
     '/^$/',
     0,
     'Run with -r option',
@@ -169,7 +169,7 @@ likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
 ok(-d $spooldir, "$spooldir exists");
 ok(-e $logfile, "$logfile exists");
 like(file_data($logfile), # {{{
-    "/^$datefmt - Starting gitspreadd v\\d.\\d\\d, PID = \\d+\\n\$/s",
+    "/^$datefmt - Starting gitspreadd \\d\\.\\d+\\.\\d+, PID = \\d+\\n\$/s",
     "$logfile looks ok"
 );
 
@@ -177,7 +177,7 @@ like(file_data($logfile), # {{{
 cleanup();
 create_tmpdir();
 likecmd("GITSPREAD_REPODIR=\"$tmpdir\" $CMD -1", # {{{
-    '/^Starting gitspreadd v\d.\d\d, PID = \d+\n$/s',
+    '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
     '/^$/',
     0,
     'Use GITSPREAD_REPODIR environment variable',
@@ -623,7 +623,7 @@ sub file_data {
 
 sub print_version {
     # Print program version {{{
-    print("$progname v$VERSION\n");
+    print("$progname $VERSION\n");
     return;
     # }}}
 } # print_version()
@@ -653,7 +653,8 @@ Options:
   -v, --verbose
     Increase level of verbosity. Can be repeated.
   --version
-    Print version information.
+    Print version information. "Semantic versioning" is used, described 
+    at <http://semver.org>.
   --debug
     Print debugging messages.
 
