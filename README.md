@@ -29,7 +29,7 @@ Setup
   - `git remote add gitlab git@gitlab.com:foo/project.git`
   - `git remote add github git@github.com:user/project.git`
 - Start a [screen](http://www.gnu.org/software/screen/) or 
-  [tmux](http://tmux.sourceforge.net/) session.
+  [tmux](http://tmux.github.io/) session.
 - Start the `gitspreadd` daemon inside the screen/tmux session in a 
   shell where `ssh-agent` is activated:
   - `ssh-agent bash`
