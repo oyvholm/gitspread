@@ -516,7 +516,7 @@ sub reset_wrkdir_to_first_commit {
 sub start_daemon {
     # {{{
     diag('Starting daemon...');
-    system("\"$orig_dir/$CMD\" -r \"$tmpdir\"");
+    system("\"$orig_dir/$CMD\" -r \"$tmpdir\" >/dev/null");
     ok(-e $pidfile, 'PID file exists');
     like(file_data($pidfile), '/^\d+\n$/s', 'PID file looks ok');
     return;
