@@ -3,6 +3,7 @@
 #=======================================================================
 # gitspreadd.t
 # File ID: aed76eda-6124-11e0-aeaf-adf3f75e27a6
+#
 # Test suite for gitspreadd(1).
 #
 # Character set: UTF-8
@@ -105,7 +106,7 @@ sub main {
 
     testcmd("$CMD command", # {{{
         <<'END',
-[expected stdin]
+[expected stdout]
 END
         '',
         0,
