@@ -599,10 +599,10 @@ sub likecmd {
     if (defined($Exp_stderr)) {
         $stderr_cmd = " 2>$TMP_STDERR";
     }
-    like(`$Cmd$stderr_cmd`, "$Exp_stdout", $Txt);
+    like(`$Cmd$stderr_cmd`, $Exp_stdout, $Txt);
     my $ret_val = $?;
     if (defined($Exp_stderr)) {
-        like(file_data($TMP_STDERR), "$Exp_stderr", "$Txt (stderr)");
+        like(file_data($TMP_STDERR), $Exp_stderr, "$Txt (stderr)");
         unlink($TMP_STDERR);
     } else {
         diag("Warning: stderr not defined for '$Txt'");
