@@ -519,7 +519,7 @@ sub start_daemon {
     my $tmpfile = ".gitspread-start-output.tmp";
     system("\"$orig_dir/$CMD\" -r \"$tmpdir\" >$tmpfile");
     like(file_data($tmpfile),
-        '/^Starting gitspreadd \d+.\d+.\d+, PID = \d+\n$/s',
+        '/^Starting gitspreadd \d+\.\d+\.\d+, PID = \d+\n$/s',
         'stdout from daemon looks ok',
     );
     ok(-e $pidfile, 'PID file exists');
