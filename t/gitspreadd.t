@@ -571,7 +571,7 @@ sub testcmd {
     if (defined($Exp_stderr)) {
         $stderr_cmd = " 2>$TMP_STDERR";
     }
-    is(`$Cmd$stderr_cmd`, $Exp_stdout, $Txt);
+    is(`$Cmd$stderr_cmd`, $Exp_stdout, "$Txt (stdout)");
     my $ret_val = $?;
     if (defined($Exp_stderr)) {
         is(file_data($TMP_STDERR), $Exp_stderr, "$Txt (stderr)");
@@ -599,7 +599,7 @@ sub likecmd {
     if (defined($Exp_stderr)) {
         $stderr_cmd = " 2>$TMP_STDERR";
     }
-    like(`$Cmd$stderr_cmd`, $Exp_stdout, $Txt);
+    like(`$Cmd$stderr_cmd`, $Exp_stdout, "$Txt (stdout)");
     my $ret_val = $?;
     if (defined($Exp_stderr)) {
         like(file_data($TMP_STDERR), $Exp_stderr, "$Txt (stderr)");
