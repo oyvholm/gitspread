@@ -66,74 +66,6 @@ if ($Opt{'version'}) {
     exit(0);
 }
 
-diag(sprintf('========== Executing %s v%s ==========',
-    $progname,
-    $VERSION));
-
-unless (ok(-e 'gitspreadd.t' && -e '../gitspreadd' && -e '../post-receive',
-    'We are in the correct directory')) {
-    diag('Has to be run from inside the gitspread/t/ directory.');
-    exit 1;
-}
-
-if ($Opt{'todo'} && !$Opt{'all'}) {
-    goto todo_section;
-}
-
-=pod
-
-testcmd("$CMD command", # {{{
-    <<'END',
-[expected stdin]
-END
-    '',
-    0,
-    'description',
-);
-
-# }}}
-
-=cut
-
-diag('Testing -h (--help) option...');
-likecmd("$CMD -h", # {{{
-    '/  Show this help\./',
-    '/^$/',
-    0,
-    'Option -h prints help screen',
-);
-
-# }}}
-diag('Testing -q (--quiet) option...');
-likecmd("$CMD --version -q", # {{{
-    '/^\d\.\d+\.\d+\n/s',
-    '/^$/',
-    0,
-    'Option -q with --version does not output program name',
-);
-
-# }}}
-diag('Testing -v (--verbose) option...');
-likecmd("$CMD -hv", # {{{
-    '/^\n\S+ \d\.\d+\.\d+\n/s',
-    '/^$/',
-    0,
-    'Option --version with -h returns version number and help screen',
-);
-
-# }}}
-diag('Testing --version option...');
-likecmd("$CMD --version", # {{{
-    '/^\S+ \d\.\d+\.\d+\n/',
-    '/^$/',
-    0,
-    'Option --version returns version number',
-);
-
-# }}}
-
-my $datefmt = '20\d\d-\d\d-\d\d \d\d:\d\d:\d\dZ';
-
 my $SHOULD_NOT_EXIST = 0;
 my $SHOULD_EXIST = 1;
 
@@ -148,106 +80,184 @@ my $logfile = "$tmpdir/gitspreadd.log";
 my $pidfile = "$tmpdir/pid";
 my $stopfile = "$tmpdir/stop";
 
-cleanup();
-testcmd("$CMD -1 -r \"$tmpdir\"", # {{{
-    '',
-    "gitspreadd: $tmpdir: Missing repository top directory\n",
-    1,
-    'Complain about missing repodir',
-);
+exit(main(%Opt));
 
-# }}}
-create_tmpdir();
-likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
-    '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
-    '/^$/',
-    0,
-    'Run with -r option',
-);
+sub main {
+    # {{{
+    my %Opt = @_;
+    my $Retval = 0;
 
-# }}}
-ok(-d $spooldir, "$spooldir exists");
-ok(-e $logfile, "$logfile exists");
-like(file_data($logfile), # {{{
-    "/^$datefmt - Starting gitspreadd \\d\\.\\d+\\.\\d+, PID = \\d+\\n\$/s",
-    "$logfile looks ok"
-);
+    diag(sprintf('========== Executing %s v%s ==========',
+        $progname,
+        $VERSION));
 
-# }}}
-cleanup();
-create_tmpdir();
-likecmd("GITSPREAD_REPODIR=\"$tmpdir\" $CMD -1", # {{{
-    '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
-    '/^$/',
-    0,
-    'Use GITSPREAD_REPODIR environment variable',
-);
-
-# }}}
-ok(-d $spooldir, "$spooldir exists");
-ok(-e $logfile, "$logfile exists");
-
-diag('Set up repositories...');
-
-setup_repo();
-setup_wrkdir();
-setup_mirror();
-
-start_daemon();
-
-create_file('newfile');
-add_and_commit_file('newfile');
-push_to_repo_succeeds();
-check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile exists in mirror.git');
-
-diag('Check gitspread.forcepush config option...');
-reset_wrkdir_to_first_commit();
-push_to_repo_denied();
-push_to_repo_force_update();
-check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile still exists in mirror.git');
-
-enable_gitspread_forcepush();
-create_file('newfile');
-add_and_commit_file('newfile');
-push_to_repo_succeeds();
-reset_wrkdir_to_first_commit();
-push_to_repo_force_update();
-check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile is gone from mirror.git');
-
-diag('Create branch, push it, and then remove it...');
-create_branch('newbranch1');
-create_file('branchfile1');
-add_and_commit_file('branchfile1');
-create_branch('newbranch2');
-create_file('branchfile2');
-add_and_commit_file('branchfile2');
-push_new_branch('newbranch1', 'newbranch2');
-check_log($SHOULD_EXIST, $mirror, 'branchfile1', 'branchfile1 exists in mirror.git');
-check_log($SHOULD_EXIST, $mirror, 'branchfile2', 'branchfile2 exists in mirror.git');
-delete_branch('newbranch1', 'newbranch2');
-delete_remote_branch('newbranch1', 'newbranch2');
-check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile1', 'branchfile1 is gone from mirror.git');
-check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile2', 'branchfile2 is gone from mirror.git');
-
-stop_daemon();
-cleanup();
-
-todo_section:
-;
-
-if ($Opt{'all'} || $Opt{'todo'}) {
-    diag('Running TODO tests...'); # {{{
-
-    TODO: {
-
-local $TODO = '';
-# Insert TODO tests here.
-
+    unless (ok(-e 'gitspreadd.t' && -e '../gitspreadd' && -e '../post-receive',
+        'We are in the correct directory')) {
+        diag('Has to be run from inside the gitspread/t/ directory.');
+        exit 1;
     }
-    # TODO tests }}}
-}
 
-diag('Testing finished.');
+    if ($Opt{'todo'} && !$Opt{'all'}) {
+        goto todo_section;
+    }
+
+=pod
+
+    testcmd("$CMD command", # {{{
+        <<'END',
+[expected stdin]
+END
+        '',
+        0,
+        'description',
+    );
+
+    # }}}
+
+=cut
+
+    diag('Testing -h (--help) option...');
+    likecmd("$CMD -h", # {{{
+        '/  Show this help\./',
+        '/^$/',
+        0,
+        'Option -h prints help screen',
+    );
+
+    # }}}
+    diag('Testing -q (--quiet) option...');
+    likecmd("$CMD --version -q", # {{{
+        '/^\d\.\d+\.\d+\n/s',
+        '/^$/',
+        0,
+        'Option -q with --version does not output program name',
+    );
+
+    # }}}
+    diag('Testing -v (--verbose) option...');
+    likecmd("$CMD -hv", # {{{
+        '/^\n\S+ \d\.\d+\.\d+\n/s',
+        '/^$/',
+        0,
+        'Option --version with -h returns version number and help screen',
+    );
+
+    # }}}
+    diag('Testing --version option...');
+    likecmd("$CMD --version", # {{{
+        '/^\S+ \d\.\d+\.\d+\n/',
+        '/^$/',
+        0,
+        'Option --version returns version number',
+    );
+
+    # }}}
+
+    my $datefmt = '20\d\d-\d\d-\d\d \d\d:\d\d:\d\dZ';
+
+    cleanup();
+    testcmd("$CMD -1 -r \"$tmpdir\"", # {{{
+        '',
+        "gitspreadd: $tmpdir: Missing repository top directory\n",
+        1,
+        'Complain about missing repodir',
+    );
+
+    # }}}
+    create_tmpdir();
+    likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
+        '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
+        '/^$/',
+        0,
+        'Run with -r option',
+    );
+
+    # }}}
+    ok(-d $spooldir, "$spooldir exists");
+    ok(-e $logfile, "$logfile exists");
+    like(file_data($logfile), # {{{
+        "/^$datefmt - Starting gitspreadd \\d\\.\\d+\\.\\d+, PID = \\d+\\n\$/s",
+        "$logfile looks ok"
+    );
+
+    # }}}
+    cleanup();
+    create_tmpdir();
+    likecmd("GITSPREAD_REPODIR=\"$tmpdir\" $CMD -1", # {{{
+        '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
+        '/^$/',
+        0,
+        'Use GITSPREAD_REPODIR environment variable',
+    );
+
+    # }}}
+    ok(-d $spooldir, "$spooldir exists");
+    ok(-e $logfile, "$logfile exists");
+
+    diag('Set up repositories...');
+
+    setup_repo();
+    setup_wrkdir();
+    setup_mirror();
+
+    start_daemon();
+
+    create_file('newfile');
+    add_and_commit_file('newfile');
+    push_to_repo_succeeds();
+    check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile exists in mirror.git');
+
+    diag('Check gitspread.forcepush config option...');
+    reset_wrkdir_to_first_commit();
+    push_to_repo_denied();
+    push_to_repo_force_update();
+    check_log($SHOULD_EXIST, $mirror, 'newfile', 'newfile still exists in mirror.git');
+
+    enable_gitspread_forcepush();
+    create_file('newfile');
+    add_and_commit_file('newfile');
+    push_to_repo_succeeds();
+    reset_wrkdir_to_first_commit();
+    push_to_repo_force_update();
+    check_log($SHOULD_NOT_EXIST, $mirror, 'newfile', 'newfile is gone from mirror.git');
+
+    diag('Create branch, push it, and then remove it...');
+    create_branch('newbranch1');
+    create_file('branchfile1');
+    add_and_commit_file('branchfile1');
+    create_branch('newbranch2');
+    create_file('branchfile2');
+    add_and_commit_file('branchfile2');
+    push_new_branch('newbranch1', 'newbranch2');
+    check_log($SHOULD_EXIST, $mirror, 'branchfile1', 'branchfile1 exists in mirror.git');
+    check_log($SHOULD_EXIST, $mirror, 'branchfile2', 'branchfile2 exists in mirror.git');
+    delete_branch('newbranch1', 'newbranch2');
+    delete_remote_branch('newbranch1', 'newbranch2');
+    check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile1', 'branchfile1 is gone from mirror.git');
+    check_log($SHOULD_NOT_EXIST, $mirror, 'branchfile2', 'branchfile2 is gone from mirror.git');
+
+    stop_daemon();
+    cleanup();
+
+    todo_section:
+    ;
+
+    if ($Opt{'all'} || $Opt{'todo'}) {
+        diag('Running TODO tests...'); # {{{
+
+        TODO: {
+
+            local $TODO = '';
+            # Insert TODO tests here.
+
+        }
+        # TODO tests }}}
+    }
+
+    diag('Testing finished.');
+    return($Retval);
+    # }}}
+} # main()
 
 sub cleanup {
     # {{{
