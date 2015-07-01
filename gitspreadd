@@ -67,6 +67,7 @@ if ($Opt{'version'}) {
     exit(0);
 }
 
+my $CMD_GIT = defined($ENV{'GITSPREAD_GIT'}) ? $ENV{'GITSPREAD_GIT'} : 'git';
 my $repodir = abs_path($Std{'repodir'});
 defined($ENV{'GITSPREAD_REPODIR'}) &&
     length($ENV{'GITSPREAD_REPODIR'}) &&
@@ -165,11 +166,11 @@ sub process_repo {
     for my $remote (git_remotes()) {
         if (scalar(@deleted_branches)) {
             for my $branch (@deleted_branches) {
-                exec_command('git', 'push', $remote, ":$branch");
+                exec_command($CMD_GIT, 'push', $remote, ":$branch");
             }
         }
-        exec_command('git', 'push', $force_opt, '--all', $remote);
-        exec_command('git', 'push', $force_opt, '--tags', $remote);
+        exec_command($CMD_GIT, 'push', $force_opt, '--all', $remote);
+        exec_command($CMD_GIT, 'push', $force_opt, '--tags', $remote);
     }
 
 endfunc:
@@ -191,13 +192,13 @@ sub git_config_value {
     # {{{
     my $option = shift;
     my $retval = '';
-    if (open(my $pipefh, "git config --get $option |")) {
+    if (open(my $pipefh, "$CMD_GIT config --get $option |")) {
         local $/ = undef;
         $retval = <$pipefh>;
         close($pipefh);
     } else {
         logmsg("FATAL: git_config_value(): " .
-            "Cannot open \"git config --get\" pipe: $!. Aborting.");
+            "Cannot open \"$CMD_GIT config --get\" pipe: $!. Aborting.");
         exit(1);
     }
     chomp($retval);
@@ -208,7 +209,7 @@ sub git_config_value {
 sub git_remotes {
     # {{{
     my @retval = ();
-    if (open(my $pipefh, "git remote |")) {
+    if (open(my $pipefh, "$CMD_GIT remote |")) {
         while (<$pipefh>) {
             chomp;
             length($_) && push(@retval, $_);
@@ -217,7 +218,7 @@ sub git_remotes {
             logmsg("WARNING: Could not close \$pipefh in git_remotes(): $!");
     } else {
         logmsg("FATAL: git_remotes(): " .
-            "Cannot open \"git remote\" pipe: $!. Aborting.");
+            "Cannot open \"$CMD_GIT remote\" pipe: $!. Aborting.");
         exit(1);
     }
     return(@retval);
@@ -277,6 +278,12 @@ Options:
     at <http://semver.org>.
   --debug
     Print debugging messages.
+
+To use an alternative version of git, set the \$GITSPREAD_GIT 
+environment variable to the git executable to use. For example:
+
+  export GITSPREAD_GIT=/usr/local/bin/git
+  ./gitspreadd
 
 END
     }

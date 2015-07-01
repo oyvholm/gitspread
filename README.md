@@ -74,6 +74,16 @@ The following option can be used in the bare repositories:
     repositories. This allows gitspreadd to push non-fast-forward 
     branches. Use with care. Valid values: "", "false" or "true".
 
+### Environment variables
+
+#### GITSPREAD_GIT
+
+To use an alternative version of git, set the $GITSPREAD_GIT environment 
+variable to the git executable to use. For example:
+
+    export GITSPREAD_GIT=/usr/local/bin/git
+    ./gitspreadd
+
 Source code
 -----------
 
