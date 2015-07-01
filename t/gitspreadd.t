@@ -30,13 +30,11 @@ use Getopt::Long;
 
 local $| = 1;
 
-our $Debug = 0;
 our $CMD = '../gitspreadd';
 
 our %Opt = (
 
     'all' => 0,
-    'debug' => 0,
     'help' => 0,
     'todo' => 0,
     'verbose' => 0,
@@ -52,7 +50,6 @@ Getopt::Long::Configure('bundling');
 GetOptions(
 
     'all|a' => \$Opt{'all'},
-    'debug' => \$Opt{'debug'},
     'help|h' => \$Opt{'help'},
     'todo|t' => \$Opt{'todo'},
     'verbose|v+' => \$Opt{'verbose'},
@@ -60,7 +57,6 @@ GetOptions(
 
 ) || die("$progname: Option error. Use -h for help.\n");
 
-$Opt{'debug'} && ($Debug = 1);
 $Opt{'help'} && usage(0);
 if ($Opt{'version'}) {
     print_version();
@@ -564,7 +560,6 @@ sub testcmd {
     # {{{
     my ($Cmd, $Exp_stdout, $Exp_stderr, $Exp_retval, $Desc) = @_;
     my $stderr_cmd = '';
-    my $deb_str = $Opt{'debug'} ? ' --debug' : '';
     my $Txt = join('',
         "\"$Cmd\"",
         defined($Desc)
@@ -573,16 +568,14 @@ sub testcmd {
     );
     my $TMP_STDERR = 'gitspreadd-stderr.tmp';
 
-    if (defined($Exp_stderr) && !length($deb_str)) {
+    if (defined($Exp_stderr)) {
         $stderr_cmd = " 2>$TMP_STDERR";
     }
-    is(`$Cmd$deb_str$stderr_cmd`, $Exp_stdout, $Txt);
+    is(`$Cmd$stderr_cmd`, $Exp_stdout, $Txt);
     my $ret_val = $?;
     if (defined($Exp_stderr)) {
-        if (!length($deb_str)) {
-            is(file_data($TMP_STDERR), $Exp_stderr, "$Txt (stderr)");
-            unlink($TMP_STDERR);
-        }
+        is(file_data($TMP_STDERR), $Exp_stderr, "$Txt (stderr)");
+        unlink($TMP_STDERR);
     } else {
         diag("Warning: stderr not defined for '$Txt'");
     }
@@ -595,7 +588,6 @@ sub likecmd {
     # {{{
     my ($Cmd, $Exp_stdout, $Exp_stderr, $Exp_retval, $Desc) = @_;
     my $stderr_cmd = '';
-    my $deb_str = $Opt{'debug'} ? ' --debug' : '';
     my $Txt = join('',
         "\"$Cmd\"",
         defined($Desc)
@@ -604,16 +596,14 @@ sub likecmd {
     );
     my $TMP_STDERR = 'gitspreadd-stderr.tmp';
 
-    if (defined($Exp_stderr) && !length($deb_str)) {
+    if (defined($Exp_stderr)) {
         $stderr_cmd = " 2>$TMP_STDERR";
     }
-    like(`$Cmd$deb_str$stderr_cmd`, "$Exp_stdout", $Txt);
+    like(`$Cmd$stderr_cmd`, "$Exp_stdout", $Txt);
     my $ret_val = $?;
     if (defined($Exp_stderr)) {
-        if (!length($deb_str)) {
-            like(file_data($TMP_STDERR), "$Exp_stderr", "$Txt (stderr)");
-            unlink($TMP_STDERR);
-        }
+        like(file_data($TMP_STDERR), "$Exp_stderr", "$Txt (stderr)");
+        unlink($TMP_STDERR);
     } else {
         diag("Warning: stderr not defined for '$Txt'");
     }
@@ -671,8 +661,6 @@ Options:
   --version
     Print version information. "Semantic versioning" is used, described 
     at <http://semver.org>.
-  --debug
-    Print debugging messages.
 
 END
     exit($Retval);
