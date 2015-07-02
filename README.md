@@ -117,6 +117,9 @@ Using the version number `X.Y.Z` as an example:
 - `Z` is the *patch level*. Increased when new backwards-compatible 
   bugfixes are added.
 
+Gitspread works with git versions way back to `v1.5.5-rc1-12-g660b9c3` 
+(2008-03-26).
+
 Bugs and suggestions
 --------------------
 
