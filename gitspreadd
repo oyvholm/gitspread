@@ -3,6 +3,7 @@
 #=======================================================================
 # gitspreadd
 # File ID: 6c4d0b82-6111-11e0-8250-e509f64f5c24
+#
 # Push received commits and tags to other remotes to save bandwith
 #
 # Character set: UTF-8
@@ -22,8 +23,6 @@ use POSIX 'setsid';
 
 local $| = 1;
 
-our $Debug = 0;
-
 my %Std = (
 
     'repodir' => "$ENV{'HOME'}/Git-spread",
@@ -32,7 +31,6 @@ my %Std = (
 
 our %Opt = (
 
-    'debug' => 0,
     'help' => 0,
     'quiet' => 0,
     'repodir' => '',
@@ -49,7 +47,6 @@ our $VERSION = '0.10.0';
 Getopt::Long::Configure('bundling');
 GetOptions(
 
-    'debug' => \$Opt{'debug'},
     'help|h' => \$Opt{'help'},
     'quiet|q+' => \$Opt{'quiet'},
     'repodir|r=s' => \$Opt{'repodir'},
@@ -59,7 +56,6 @@ GetOptions(
 
 ) || die("$progname: Option error. Use -h for help.\n");
 
-$Opt{'debug'} && ($Debug = 1);
 $Opt{'verbose'} -= $Opt{'quiet'};
 $Opt{'help'} && usage(0);
 if ($Opt{'version'}) {
@@ -78,59 +74,69 @@ my $spooldir = abs_path("$repodir/spool");
 my $logfile = abs_path("$repodir/$progname.log");
 my $pidfile = abs_path("$repodir/pid");
 my $stopfile = abs_path("$repodir/stop");
+my $logfh;
 
-if (! -d "$repodir/.") {
-    warn("$progname: $repodir: Missing repository top directory\n");
-    exit(1);
-}
+exit(main(%Opt));
 
-if (! -d "$spooldir/.") {
-    mkdir($spooldir) or die("$progname: $spooldir: Cannot create spool directory: $!\n");
-}
+sub main {
+    # {{{
+    my %Opt = @_;
+    my $Retval = 0;
 
-open(my $logfh, '>>', $logfile)
-    or die("$progname: $logfile: Cannot open logfile: $!\n");
-$logfh->autoflush(1);
-flock($logfh, LOCK_EX | LOCK_NB)
-    or die("$progname: $logfile: Cannot lock file: $!.\n" .
-        "Is $progname already running?\n");
-
-my $do_loop = $Opt{'run-once'} ? 0 : 1;
-
-defined(my $pid = fork) or die("$progname: Cannot fork: $!");
-
-if ($pid) {
-    my $start_str = "Starting $progname $VERSION, PID = $pid";
-    print("$start_str\n");
-    logmsg($start_str);
-    if (open(my $pidfh, '>', $pidfile)) {
-        print($pidfh "$pid\n");
-        close($pidfh);
+    if (! -d "$repodir/.") {
+        warn("$progname: $repodir: Missing repository top directory\n");
+        exit(1);
     }
-}
 
-exit if $pid;
-setsid or die("$progname: Cannot start a new session: $!\n");
-
-do {
-    if (-e $stopfile) {
-        logmsg("$stopfile exists, terminating properly");
-        unlink($pidfile) || logmsg("WARNING: Cannot remove $pidfile: $!");
-        unlink($stopfile) || logmsg("WARNING: Cannot remove $stopfile: $!");
-        exit(0);
+    if (! -d "$spooldir/.") {
+        mkdir($spooldir) or die("$progname: $spooldir: Cannot create spool directory: $!\n");
     }
-    chdir($spooldir) || (logmsg("$spooldir: Cannot chdir to spool directory: $!. Aborting."), exit(1));
-    my @repos = glob('*');
-    if (scalar @repos) {
-        logmsg('Found new commits: ' . join(' ', @repos));
-        for my $repo (@repos) {
-            process_repo($repo);
+
+    open($logfh, '>>', $logfile)
+        or die("$progname: $logfile: Cannot open logfile: $!\n");
+    $logfh->autoflush(1);
+    flock($logfh, LOCK_EX | LOCK_NB)
+        or die("$progname: $logfile: Cannot lock file: $!.\n" .
+            "Is $progname already running?\n");
+
+    my $do_loop = $Opt{'run-once'} ? 0 : 1;
+
+    defined(my $pid = fork) or die("$progname: Cannot fork: $!");
+
+    if ($pid) {
+        my $start_str = "Starting $progname $VERSION, PID = $pid";
+        print("$start_str\n");
+        logmsg($start_str);
+        if (open(my $pidfh, '>', $pidfile)) {
+            print($pidfh "$pid\n");
+            close($pidfh);
         }
     }
-    sleep(1);
-} while($do_loop);
 
-exit;
+    exit if $pid;
+    setsid or die("$progname: Cannot start a new session: $!\n");
+
+    do {
+        if (-e $stopfile) {
+            logmsg("$stopfile exists, terminating properly");
+            unlink($pidfile) || logmsg("WARNING: Cannot remove $pidfile: $!");
+            unlink($stopfile) || logmsg("WARNING: Cannot remove $stopfile: $!");
+            exit(0);
+        }
+        chdir($spooldir) || (logmsg("$spooldir: Cannot chdir to spool directory: $!. Aborting."), exit(1));
+        my @repos = glob('*');
+        if (scalar @repos) {
+            logmsg('Found new commits: ' . join(' ', @repos));
+            for my $repo (@repos) {
+                process_repo($repo);
+            }
+        }
+        sleep(1);
+    } while($do_loop);
+
+    return($Retval);
+    # }}}
+} # main()
 
 sub process_repo {
     # {{{
@@ -276,8 +282,6 @@ Options:
   --version
     Print version information. "Semantic versioning" is used, described 
     at <http://semver.org>.
-  --debug
-    Print debugging messages.
 
 To use an alternative version of git, set the \$GITSPREAD_GIT 
 environment variable to the git executable to use. For example:
@@ -301,19 +305,6 @@ sub msg {
     return;
     # }}}
 } # msg()
-
-sub D {
-    # Print a debugging message {{{
-    $Debug || return;
-    my @call_info = caller;
-    chomp(my $Txt = shift);
-    my $File = $call_info[1];
-    $File =~ s#\\#/#g;
-    $File =~ s#^.*/(.*?)$#$1#;
-    print(STDERR "$File:$call_info[2] $$ $Txt\n");
-    return('');
-    # }}}
-} # D()
 
 __END__
 
