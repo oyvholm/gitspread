@@ -44,7 +44,7 @@ our %Opt = (
 
 our $progname = $0;
 $progname =~ s/^.*\/(.*?)$/$1/;
-our $VERSION = '0.11.0';
+our $VERSION = '0.11.0+git';
 
 Getopt::Long::Configure('bundling');
 GetOptions(
@@ -125,7 +125,7 @@ END
     # }}}
     diag('Testing -q (--quiet) option...');
     likecmd("$CMD --version -q", # {{{
-        '/^\d\.\d+\.\d+\n/s',
+        '/^\d\.\d+\.\d+(\+git)?\n/s',
         '/^$/',
         0,
         'Option -q with --version does not output program name',
@@ -134,7 +134,7 @@ END
     # }}}
     diag('Testing -v (--verbose) option...');
     likecmd("$CMD -hv", # {{{
-        '/^\n\S+ \d\.\d+\.\d+\n/s',
+        '/^\n\S+ \d\.\d+\.\d+(\+git)?\n/s',
         '/^$/',
         0,
         'Option --version with -h returns version number and help screen',
@@ -143,7 +143,7 @@ END
     # }}}
     diag('Testing --version option...');
     likecmd("$CMD --version", # {{{
-        '/^\S+ \d\.\d+\.\d+\n/',
+        '/^\S+ \d\.\d+\.\d+(\+git)?\n/',
         '/^$/',
         0,
         'Option --version returns version number',
@@ -164,7 +164,7 @@ END
     # }}}
     create_tmpdir();
     likecmd("$CMD -1 -r \"$tmpdir\"", # {{{
-        '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
+        '/^Starting gitspreadd \d\.\d+\.\d+(\+git)?, PID = \d+\n$/s',
         '/^$/',
         0,
         'Run with -r option',
@@ -174,7 +174,7 @@ END
     ok(-d $spooldir, "$spooldir exists");
     ok(-e $logfile, "$logfile exists");
     like(file_data($logfile), # {{{
-        "/^$datefmt - Starting gitspreadd \\d\\.\\d+\\.\\d+, PID = \\d+\\n\$/s",
+        "/^$datefmt - Starting gitspreadd \\d\\.\\d+\\.\\d+(\\+git)?, PID = \\d+\\n\$/s",
         "$logfile looks ok"
     );
 
@@ -182,7 +182,7 @@ END
     cleanup();
     create_tmpdir();
     likecmd("GITSPREAD_REPODIR=\"$tmpdir\" $CMD -1", # {{{
-        '/^Starting gitspreadd \d\.\d+\.\d+, PID = \d+\n$/s',
+        '/^Starting gitspreadd \d\.\d+\.\d+(\+git)?, PID = \d+\n$/s',
         '/^$/',
         0,
         'Use GITSPREAD_REPODIR environment variable',
@@ -527,7 +527,7 @@ sub start_daemon {
     my $tmpfile = ".gitspread-start-output.tmp";
     system("\"$orig_dir/$CMD\" -r \"$tmpdir\" >$tmpfile");
     like(file_data($tmpfile),
-        '/^Starting gitspreadd \d+\.\d+\.\d+, PID = \d+\n$/s',
+        '/^Starting gitspreadd \d+\.\d+\.\d+(\+git)?, PID = \d+\n$/s',
         'stdout from daemon looks ok',
     );
     ok(-e $pidfile, 'PID file exists');

@@ -4,6 +4,8 @@ Summary of user-visible changes in Gitspread
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in README.md .
 
+v0.1x.x - 20xx-xx-xx
+
 v0.11.0 - 2015-07-11
   - Use Semantic Versioning as described at <http://semver.org>
   - Add $GITSPREAD_GIT environment variable, allow alternative git(1)

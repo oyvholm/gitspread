@@ -42,7 +42,7 @@ our %Opt = (
 
 our $progname = $0;
 $progname =~ s/^.*\/(.*?)$/$1/;
-our $VERSION = '0.11.0';
+our $VERSION = '0.11.0+git';
 
 Getopt::Long::Configure('bundling');
 GetOptions(
