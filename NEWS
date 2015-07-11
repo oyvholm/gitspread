@@ -7,6 +7,9 @@ repositories mentioned in README.md .
 v0.1x.x - 2015-0x-xx
   - Use Semantic Versioning as described at <http://semver.org>
   - Add $GITSPREAD_GIT environment variable, allow alternative git(1)
+  - Add the scripts t/Add_test (create a new test file) and t/Genlog 
+    (execute the tests, format output and save output to log/)
+  - Create Makefiles to run tests
   - gitspreadd, gitspreadd.t: Remove unused debug functions and --debug 
     option
   - Sync gitspreadd against "perl" template
