@@ -8,6 +8,8 @@ v0.1x.x - 20xx-xx-xx
 --------------------
 
 - Rename `NEWS` to `NEWS.md` and add proper CommonMark/Markdown syntax
+- Add the `t/remove_perltestnumbers` script to make "`make test`" work 
+  everywhere
 
 v0.11.0 - 2015-07-11
 --------------------

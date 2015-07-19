@@ -26,7 +26,7 @@ for gf in "$@"; do
     testname=$gf
     testname=`echo -n $testname | perl -pe 's/\.t$//'`
     printf "%${maxlen}s.t: " $testname
-    ./$testname.t 2>&1 | remove_perltestnumbers >log/$testname.log
+    ./$testname.t 2>&1 | ./remove_perltestnumbers >log/$testname.log
     not_ok_count=$(grep "^not ok -" log/$testname.log | wc -l | tr -d ' ')
     if [ $not_ok_count -gt 0 ]; then
         not_ok_str=", $not_ok_count not ok"
