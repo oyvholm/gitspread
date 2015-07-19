@@ -7,6 +7,8 @@ repositories mentioned in `README.md`.
 v0.1x.x - 20xx-xx-xx
 --------------------
 
+- Rename `NEWS` to `NEWS.md` and add proper CommonMark/Markdown syntax
+
 v0.11.0 - 2015-07-11
 --------------------
 
