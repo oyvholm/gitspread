@@ -1,5 +1,5 @@
-Summary of user-visible changes in Gitspread
-============================================
+Summary of changes in Gitspread
+===============================
 
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in `README.md`.
@@ -68,4 +68,4 @@ Pre-0.01 (Bash version)
 
 - Initial release using bash scripts.
 
-vim: set ts=2 sw=2 sts=2 fo=tcqw fenc=utf8 :
+vim: set tw=72 ts=2 sw=2 sts=2 fo=tcqw fenc=utf8 :
