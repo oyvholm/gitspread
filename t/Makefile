@@ -11,4 +11,4 @@ clean:
 
 .PHONY: test
 test:
-	./Genlog *.t
+	./gitspreadd.t

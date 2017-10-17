@@ -1,9 +1,0 @@
-#!/usr/bin/perl -w
-
-# remove_perltestnumbers
-# File ID: f4eb3942-2e3e-11e5-bcb5-000df06acc56
-
-while (<>) {
-    s/^((not )?ok)( \d+ )- /$1 - /;
-    print;
-}

@@ -10,8 +10,9 @@ v0.1x.x - 20xx-xx-xx
 - Rename `NEWS` to `NEWS.md` and add proper CommonMark/Markdown syntax
 - Update a test to allow non-standard commit SHA1 lengths defined with 
   core.abbrev in git config.
-- Add the `t/remove_perltestnumbers` script to make "`make test`" work 
-  everywhere
+- make test: Show output from all tests as they are executed, don't use 
+  `Genlog` to show the final result only. Delete `t/Genlog`, 
+  `t/remove_perltestnumbers` and `t/Add_test`.
 - Update Makefiles to understand "make", "make clean" and "make test", a 
   plain "make" doesn't run the tests anymore. Also add .PHONYs to the 
   Makefiles and use "$(MAKE)" instead of "make".
