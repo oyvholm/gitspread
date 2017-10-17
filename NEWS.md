@@ -72,4 +72,4 @@ Pre-0.01 (Bash version)
 
 - Initial release using bash scripts.
 
-vim: set tw=72 ts=2 sw=2 sts=2 fo=tcqw fenc=utf8 :
+vim: set tw=72 ts=2 sw=2 sts=2 et fo=tcqw fenc=utf8 :
