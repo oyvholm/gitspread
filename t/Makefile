@@ -8,6 +8,7 @@ all: test
 
 .PHONY: clean
 clean:
+	rm -rf tmpdir
 
 .PHONY: test
 test:
