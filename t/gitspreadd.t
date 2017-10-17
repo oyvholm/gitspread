@@ -512,7 +512,7 @@ sub reset_wrkdir_to_first_commit {
     # {{{
     ok(chdir($wrkdir), 'chdir wrkdir');
     likecmd("$CMD_GIT reset --hard a1989e2",
-        '/^HEAD is now at a1989e2 Initial empty commit\n$/',
+        '/^HEAD is now at a198[0-9a-f]* Initial empty commit\n$/',
         '/^$/',
         0,
         'Reset HEAD to first commit'

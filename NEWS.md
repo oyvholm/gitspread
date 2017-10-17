@@ -8,6 +8,8 @@ v0.1x.x - 20xx-xx-xx
 --------------------
 
 - Rename `NEWS` to `NEWS.md` and add proper CommonMark/Markdown syntax
+- Update a test to allow non-standard commit SHA1 lengths defined with 
+  core.abbrev in git config.
 - Add the `t/remove_perltestnumbers` script to make "`make test`" work 
   everywhere
 
