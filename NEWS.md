@@ -12,6 +12,9 @@ v0.1x.x - 20xx-xx-xx
   core.abbrev in git config.
 - Add the `t/remove_perltestnumbers` script to make "`make test`" work 
   everywhere
+- Update Makefiles to understand "make", "make clean" and "make test", a 
+  plain "make" doesn't run the tests anymore. Also add .PHONYs to the 
+  Makefiles and use "$(MAKE)" instead of "make".
 
 v0.11.0 - 2015-07-11
 --------------------
